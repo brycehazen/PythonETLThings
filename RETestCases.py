@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # Import raw data
-data = pd.read_csv("C:/Users/bhoward/Desktop/Stoof/input/St. Vincent de Paul 1-89 4-25-2022.csv", encoding='latin-1' )
+data = pd.read_csv("C:/Users/file.csv", encoding='latin-1' )
 
 # Create array to track failed cases.
 data['Test Case Failed']= ''
@@ -164,7 +164,7 @@ del passed["ID"]
 failed['Test Case Failed'].value_counts()
 print("There was a total of",data.shape[0], "rows.", "There was" ,data.shape[0] - failed.shape[0], "rows passed and" ,failed.shape[0], "rows failed at least one test case")
 
-# Drop unwanted columns 
+# Drop unwanted columns, this will have to be adjusted if PDS devs help..
 redata = passed.drop(columns=['ConsCodeImpID', 'ImportID', 'Suff1', 'SRSuff2', 'Inactive', 
 'AddrRegion','AddrImpID', 'AddrImpID', 'AddrImpID.2', 'AddrImpID.1', 'PhoneAddrImpID',
 'PhoneAddrImpID.1', 'PhoneImpID', 'PhoneAddrImpID', 'PhoneImpID', 'PhoneType.1', 'DateTo', 
@@ -280,9 +280,9 @@ redata['AddrLines'] = redata['AddrLines'].str.replace('\\/n',' ',regex=True)
 # redata.AddrLines.replace(AddLineOld).map(AddLineNew)
 
 # Output edited dropped columns  
-redata.to_csv("C:/Users/bhoward/Desktop/Stoof/output/redata.csv", index = False)
+redata.to_csv("C:/Users/redata.csv", index = False)
 # Output failed rows
-failed.to_csv("C:/Users/bhoward/Desktop/Stoof/output/Failed.csv", index = False)
+failed.to_csv("C:/Users/Failed.csv", index = False)
 # Output passed rows 
-passed.to_csv("C:/Users/bhoward/Desktop/Stoof/output/Passed.csv", index = False)
+passed.to_csv("C:/Users/Passed.csv", index = False)
 
