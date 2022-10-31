@@ -4,132 +4,246 @@ import numpy as np
 
 failed_csv = 'Failed.csv'
 dup_csv = 'duplicated.csv'
-RE_Data = 'RE_Data.csv'
+renew_csv = 'RE_Data.csv'
 passed_csv = 'Passed.csv'
 import_csv = 'ImportOmatic.csv'
+rawdata_csv = 'RawParishData.csv'
 
 def get_root() -> Path:
     return Path(__file__).resolve().parent
 
 
-def process(csv_file: Path, out_dir: Path) -> None:
+def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
+    
     data = pd.read_csv(csv_file, encoding='latin-1')
+    
+    data.drop(data.columns[[38]], axis=1)
+    
+    rawdata = pd.read_csv(csv_file, encoding='latin-1')
+    if 'Notes' not in data.columns:
+      data["Notes"] = " "
 
-    # Import raw data
-    # data = pd.read_csv("1-22 St. John the Baptist 7-11-22.csv", encoding='latin-1' )
+    # change title based off Gender - This has been approved by the dios despite not knowing if it's title or gender that's correct. 
+    data.loc[data['Titl1'].eq('Mr'), 'Titl1'] = 'Mr.'
+    data.loc[data['Titl1'].eq('Mrs'), 'Titl1'] = 'Mrs.'
+    data.loc[data['Titl1'].eq('Ms'), 'Titl1'] = 'Ms.'
+    data.loc[data['Titl1'].eq('Dr'), 'Titl1'] = 'Dr.'
+    data.loc[data['SRTitl1'].eq('Mr'), 'SRTitl1'] = 'Mr.'
+    data.loc[data['SRTitl1'].eq('Mrs'), 'SRTitl1'] = 'Mrs.'
+    data.loc[data['SRTitl1'].eq('Ms'), 'SRTitl1'] = 'Ms.'
+    data.loc[data['SRTitl1'].eq('Dr'), 'SRTitl1'] = 'Dr.'
+    data.loc[data['Titl1'].eq('Rev.') , 'Titl1'] = 'Reverend'
+    data.loc[data['Titl1'].eq('Very Rev.') , 'Titl1'] = 'Very Reverend'
+    data.loc[data['Titl1'].eq('LTC') , 'Titl1'] = 'Lt. Col.'
+    data.loc[data['Titl1'].eq('Cpt.') , 'Titl1'] = 'Capt.'
+    data.loc[data['Titl1'].eq('Mgen') , 'Titl1'] = 'Maj. Gen.'
+    data.loc[data['Titl1'].eq('Lt Gen') , 'Titl1'] = 'Lt. Gen.'
+    data.loc[data['Titl1'].eq('Mr. & Mrs.') , 'Titl1'] = 'Mr.'
+    data.loc[data['SRTitl1'].eq('Mr. & Mrs.'), 'SRTitl1'] = 'Mrs.'
+    data.loc[data['SRTitl1'].eq('Maj Gen'), 'SRTitl1'] = 'Maj. Gen.'
+    data.loc[data['SRTitl1'].eq('COL'), 'SRTitl1'] = 'Col.'
+
 
     # change title based off Gender
     data.loc[data['Titl1'].eq('Mr.'), 'Gender'] = 'Male'
-    data.loc[data['Titl1'].eq('Mr'), 'Gender'] = 'Male'
     data.loc[data['Titl1'].eq('Mrs.'), 'Gender'] = 'Female'
-    data.loc[data['Titl1'].eq('Mrs'), 'Gender'] = 'Female'
     data.loc[data['Titl1'].eq('Ms.'), 'Gender'] = 'Female'
-    data.loc[data['Titl1'].eq('Ms'), 'Gender'] = 'Female'
     data.loc[data['Titl1'].eq('Miss'), 'Gender'] = 'Female'
     data.loc[data['SRTitl1'].eq('Mr.'), 'SRGender'] = 'Male'
-    data.loc[data['SRTitl1'].eq('Mr'), 'SRGender'] = 'Male'
     data.loc[data['SRTitl1'].eq('Mrs.'), 'SRGender'] = 'Female'
-    data.loc[data['SRTitl1'].eq('Mrs'), 'SRGender'] = 'Female'
     data.loc[data['SRTitl1'].eq('Ms.'), 'SRGender'] = 'Female'
-    data.loc[data['SRTitl1'].eq('Ms'), 'SRGender'] = 'Female'
     data.loc[data['SRTitl1'].eq('Miss'), 'SRGender'] = 'Female'
 
-    # Change ConsCode to long format
+    # Change ConsCode to long format to fit Raiser's Edge Import
     data.loc[data['ConsCode'].eq('1-10'), 'ConsCode'] = 'St. Hubert of the Forest Mission, Astor'
+    data.loc[data['ConsCode'].eq(' 1-10'), 'ConsCode'] = 'St. Hubert of the Forest Mission, Astor'
     data.loc[data['ConsCode'].eq('1-11'), 'ConsCode'] = 'Blessed Sacrament Catholic Church, Clermont'
+    data.loc[data['ConsCode'].eq(' 1-11'), 'ConsCode'] = 'Blessed Sacrament Catholic Church, Clermont'
     data.loc[data['ConsCode'].eq('1-22'), 'ConsCode'] = 'St. John the Baptist Catholic Church, Dunnellon'
+    data.loc[data['ConsCode'].eq(' 1-22'), 'ConsCode'] = 'St. John the Baptist Catholic Church, Dunnellon'
     data.loc[data['ConsCode'].eq('1-27'), 'ConsCode'] = 'St. Mary of the Lakes Catholic Church, Eustis'
+    data.loc[data['ConsCode'].eq(' 1-27'), 'ConsCode'] = 'St. Mary of the Lakes Catholic Church, Eustis'
     data.loc[data['ConsCode'].eq('1-30'), 'ConsCode'] = 'Santo Toribio Romo Mission, Mascotte'
+    data.loc[data['ConsCode'].eq(' 1-30'), 'ConsCode'] = 'Santo Toribio Romo Mission, Mascotte'
     data.loc[data['ConsCode'].eq('1-4'), 'ConsCode'] = 'St. Theresa Catholic Church, Belleview'
+    data.loc[data['ConsCode'].eq(' 1-4'), 'ConsCode'] = 'St. Theresa Catholic Church, Belleview'
     data.loc[data['ConsCode'].eq('1-40'), 'ConsCode'] = 'St. Timothy Catholic Church, Lady Lake'
+    data.loc[data['ConsCode'].eq(' 1-40'), 'ConsCode'] = 'St. Timothy Catholic Church, Lady Lake'
     data.loc[data['ConsCode'].eq('1-44'), 'ConsCode'] = 'St. Paul Catholic Church, Leesburg'
+    data.loc[data['ConsCode'].eq(' 1-44'), 'ConsCode'] = 'St. Paul Catholic Church, Leesburg'
     data.loc[data['ConsCode'].eq('1-5'), 'ConsCode'] = 'St. Lawrence Catholic Church, Bushnell'
+    data.loc[data['ConsCode'].eq(' 1-5'), 'ConsCode'] = 'St. Lawrence Catholic Church, Bushnell'
     data.loc[data['ConsCode'].eq('1-51'), 'ConsCode'] = 'St. Patrick Catholic Church, Mount Dora'
+    data.loc[data['ConsCode'].eq(' 1-51'), 'ConsCode'] = 'St. Patrick Catholic Church, Mount Dora'
     data.loc[data['ConsCode'].eq('1-53'), 'ConsCode'] = 'St. Joseph of the Forest Mission, Silver Springs'
+    data.loc[data['ConsCode'].eq(' 1-53'), 'ConsCode'] = 'St. Joseph of the Forest Mission, Silver Springs'
     data.loc[data['ConsCode'].eq('1-56'), 'ConsCode'] = 'Our Lady of the Springs Catholic Church, Ocala'
+    data.loc[data['ConsCode'].eq(' 1-56'), 'ConsCode'] = 'Our Lady of the Springs Catholic Church, Ocala'
     data.loc[data['ConsCode'].eq('1-57'), 'ConsCode'] = 'Blessed Trinity Catholic Church, Ocala'
+    data.loc[data['ConsCode'].eq(' 1-57'), 'ConsCode'] = 'Blessed Trinity Catholic Church, Ocala'
     data.loc[data['ConsCode'].eq('1-65'), 'ConsCode'] = 'Christ the King Mission, Citra'
+    data.loc[data['ConsCode'].eq(' 1-65'), 'ConsCode'] = 'Christ the King Mission, Citra'
     data.loc[data['ConsCode'].eq('1-67'), 'ConsCode'] = 'Queen of Peace Catholic Church, Ocala'
+    data.loc[data['ConsCode'].eq(' 1-67'), 'ConsCode'] = 'Queen of Peace Catholic Church, Ocala'
     data.loc[data['ConsCode'].eq('1-7'), 'ConsCode'] = 'St. Jude Catholic Church, Ocala'
+    data.loc[data['ConsCode'].eq(' 1-7'), 'ConsCode'] = 'St. Jude Catholic Church, Ocala'
     data.loc[data['ConsCode'].eq('1-8'), 'ConsCode'] = 'Immaculate Heart of Mary Catholic Church, Candler'
+    data.loc[data['ConsCode'].eq(' 1-8'), 'ConsCode'] = 'Immaculate Heart of Mary Catholic Church, Candler'
     data.loc[data['ConsCode'].eq('1-84'), 'ConsCode'] = 'St. Mark the Evangelist Catholic Church, Summerfield'
+    data.loc[data['ConsCode'].eq(' 1-84'), 'ConsCode'] = 'St. Mark the Evangelist Catholic Church, Summerfield'
     data.loc[data['ConsCode'].eq('1-85'), 'ConsCode'] = 'Our Lady of Guadalupe Mission, Ocala'
+    data.loc[data['ConsCode'].eq(' 1-85'), 'ConsCode'] = 'Our Lady of Guadalupe Mission, Ocala'
     data.loc[data['ConsCode'].eq('1-89'), 'ConsCode'] = 'St. Vincent de Paul Catholic Church, Wildwood'
+    data.loc[data['ConsCode'].eq(' 1-89'), 'ConsCode'] = 'St. Vincent de Paul Catholic Church, Wildwood'
     data.loc[data['ConsCode'].eq('1-92'), 'ConsCode'] = 'San Pedro de Jesus Maldonado Mission, Wildwood'
+    data.loc[data['ConsCode'].eq(' 1-92'), 'ConsCode'] = 'San Pedro de Jesus Maldonado Mission, Wildwood'
     data.loc[data['ConsCode'].eq('2-1'), 'ConsCode'] = 'St. Francis of Assisi Catholic Church, Apopka'
+    data.loc[data['ConsCode'].eq(' 2-1'), 'ConsCode'] = 'St. Francis of Assisi Catholic Church, Apopka'
     data.loc[data['ConsCode'].eq('2-14'), 'ConsCode'] = 'Corpus Christi Catholic Church, Celebration'
+    data.loc[data['ConsCode'].eq(' 2-14'), 'ConsCode'] = 'Corpus Christi Catholic Church, Celebration'
     data.loc[data['ConsCode'].eq('2-15'), 'ConsCode'] = 'St. Maximillian Kolbe Catholic Church, Avalon Park'
+    data.loc[data['ConsCode'].eq(' 2-15'), 'ConsCode'] = 'St. Maximillian Kolbe Catholic Church, Avalon Park'
     data.loc[data['ConsCode'].eq('2-16'), 'ConsCode'] = 'St. Frances Xavier Cabrini, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-16'), 'ConsCode'] = 'St. Frances Xavier Cabrini, Orlando'
     data.loc[data['ConsCode'].eq('2-2'), 'ConsCode'] = 'St. Catherine of Siena Catholic Church, Kissimmee'
+    data.loc[data['ConsCode'].eq(' 2-2'), 'ConsCode'] = 'St. Catherine of Siena Catholic Church, Kissimmee'
     data.loc[data['ConsCode'].eq('2-29'), 'ConsCode'] = 'Sts. Peter and Paul Catholic Church, Winter Park'
+    data.loc[data['ConsCode'].eq(' 2-29'), 'ConsCode'] = 'Sts. Peter and Paul Catholic Church, Winter Park'
     data.loc[data['ConsCode'].eq('2-33'), 'ConsCode'] = 'Holy Redeemer Catholic Church, Kissimmee'
+    data.loc[data['ConsCode'].eq(' 2-33'), 'ConsCode'] = 'Holy Redeemer Catholic Church, Kissimmee'
     data.loc[data['ConsCode'].eq('2-39'), 'ConsCode'] = 'Church of the Nativity, Longwood'
+    data.loc[data['ConsCode'].eq(' 2-39'), 'ConsCode'] = 'Church of the Nativity, Longwood'
     data.loc[data['ConsCode'].eq('2-45'), 'ConsCode'] = 'St. Philip Phan Van Minh Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-45'), 'ConsCode'] = 'St. Philip Phan Van Minh Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-46'), 'ConsCode'] = 'Annunciation Catholic Church, Longwood'
+    data.loc[data['ConsCode'].eq(' 2-46'), 'ConsCode'] = 'Annunciation Catholic Church, Longwood'
     data.loc[data['ConsCode'].eq('2-47'), 'ConsCode'] = 'St. Mary Magdalen Catholic Church, Altamonte Springs'
+    data.loc[data['ConsCode'].eq(' 2-47'), 'ConsCode'] = 'St. Mary Magdalen Catholic Church, Altamonte Springs'
     data.loc[data['ConsCode'].eq('2-58'), 'ConsCode'] = 'St. Isaac Jogues Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-58'), 'ConsCode'] = 'St. Isaac Jogues Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-59'), 'ConsCode'] = 'St. Andrew Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-59'), 'ConsCode'] = 'St. Andrew Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-6'), 'ConsCode'] = 'Holy Family Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-6'), 'ConsCode'] = 'Holy Family Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-60'), 'ConsCode'] = 'Blessed Trinity Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-60'), 'ConsCode'] = 'Blessed Trinity Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-61'), 'ConsCode'] = 'St. Charles Borromeo Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-61'), 'ConsCode'] = 'St. Charles Borromeo Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-62'), 'ConsCode'] = 'Good Shepherd Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-62'), 'ConsCode'] = 'Good Shepherd Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-63'), 'ConsCode'] = 'St. James Cathedral, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-63'), 'ConsCode'] = 'St. James Cathedral, Orlando'
     data.loc[data['ConsCode'].eq('2-64'), 'ConsCode'] = 'St. John Vianney Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-64'), 'ConsCode'] = 'St. John Vianney Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-66'), 'ConsCode'] = 'Mary Queen of the Universe Shrine, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-66'), 'ConsCode'] = 'Mary Queen of the Universe Shrine, Orlando'
     data.loc[data['ConsCode'].eq('2-68'), 'ConsCode'] = 'Holy Cross Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-68'), 'ConsCode'] = 'Holy Cross Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-78'), 'ConsCode'] = 'St. Thomas Aquinas Catholic Church, St. Cloud'
+    data.loc[data['ConsCode'].eq(' 2-78'), 'ConsCode'] = 'St. Thomas Aquinas Catholic Church, St. Cloud'
     data.loc[data['ConsCode'].eq('2-79'), 'ConsCode'] = 'All Souls Catholic Church, Sanford'
+    data.loc[data['ConsCode'].eq(' 2-79'), 'ConsCode'] = 'All Souls Catholic Church, Sanford'
     data.loc[data['ConsCode'].eq('2-81'), 'ConsCode'] = 'St. Ignatius Kim Mission, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-81'), 'ConsCode'] = 'St. Ignatius Kim Mission, Orlando'
     data.loc[data['ConsCode'].eq('2-82'), 'ConsCode'] = 'Most Precious Blood Catholic Church, Oviedo'
+    data.loc[data['ConsCode'].eq(' 2-82'), 'ConsCode'] = 'Most Precious Blood Catholic Church, Oviedo'
     data.loc[data['ConsCode'].eq('2-9'), 'ConsCode'] = 'St. Augustine Catholic Church, Casselberry'
+    data.loc[data['ConsCode'].eq(' 2-9'), 'ConsCode'] = 'St. Augustine Catholic Church, Casselberry'
     data.loc[data['ConsCode'].eq('2-90'), 'ConsCode'] = 'St. Stephen Catholic Church, Winter Springs'
+    data.loc[data['ConsCode'].eq(' 2-90'), 'ConsCode'] = 'St. Stephen Catholic Church, Winter Springs'
     data.loc[data['ConsCode'].eq('2-91'), 'ConsCode'] = 'St. Joseph Catholic Church, Orlando'
+    data.loc[data['ConsCode'].eq(' 2-91'), 'ConsCode'] = 'St. Joseph Catholic Church, Orlando'
     data.loc[data['ConsCode'].eq('2-95'), 'ConsCode'] = 'Resurrection Catholic Church, Winter Garden'
+    data.loc[data['ConsCode'].eq(' 2-95'), 'ConsCode'] = 'Resurrection Catholic Church, Winter Garden'
     data.loc[data['ConsCode'].eq('2-97'), 'ConsCode'] = 'St. Margaret Mary Catholic Church, Winter Park'
+    data.loc[data['ConsCode'].eq(' 2-97'), 'ConsCode'] = 'St. Margaret Mary Catholic Church, Winter Park'
     data.loc[data['ConsCode'].eq('3-13'), 'ConsCode'] = 'St. Faustina Catholic Church, Clermont'
+    data.loc[data['ConsCode'].eq(' 3-13'), 'ConsCode'] = 'St. Faustina Catholic Church, Clermont'
     data.loc[data['ConsCode'].eq('3-145'), 'ConsCode'] = 'Centro Guadalupano Mission, Wahneta'
+    data.loc[data['ConsCode'].eq(' 3-145'), 'ConsCode'] = 'Centro Guadalupano Mission, Wahneta'
     data.loc[data['ConsCode'].eq('3-28'), 'ConsCode'] = 'St. John Neumann Catholic Church, Lakeland'
+    data.loc[data['ConsCode'].eq(' 3-28'), 'ConsCode'] = 'St. John Neumann Catholic Church, Lakeland'
     data.loc[data['ConsCode'].eq('3-3'), 'ConsCode'] = 'St. Thomas Aquinas Catholic Church, Bartow'
+    data.loc[data['ConsCode'].eq(' 3-3'), 'ConsCode'] = 'St. Thomas Aquinas Catholic Church, Bartow'
     data.loc[data['ConsCode'].eq('3-32'), 'ConsCode'] = 'St. Ann Catholic Church, Haines City'
+    data.loc[data['ConsCode'].eq(' 3-32'), 'ConsCode'] = 'St. Ann Catholic Church, Haines City'
     data.loc[data['ConsCode'].eq('3-34'), 'ConsCode'] = 'St. Joseph Catholic Church, Lakeland'
+    data.loc[data['ConsCode'].eq(' 3-34'), 'ConsCode'] = 'St. Joseph Catholic Church, Lakeland'
     data.loc[data['ConsCode'].eq('3-35'), 'ConsCode'] = 'Church of the Resurrection, Lakeland'
+    data.loc[data['ConsCode'].eq(' 3-35'), 'ConsCode'] = 'Church of the Resurrection, Lakeland'
     data.loc[data['ConsCode'].eq('3-36'), 'ConsCode'] = 'St. Anthony Catholic Church, Lakeland'
+    data.loc[data['ConsCode'].eq(' 3-36'), 'ConsCode'] = 'St. Anthony Catholic Church, Lakeland'
     data.loc[data['ConsCode'].eq('3-41'), 'ConsCode'] = 'Holy Spirit Catholic Church, Lake Wales'
+    data.loc[data['ConsCode'].eq(' 3-41'), 'ConsCode'] = 'Holy Spirit Catholic Church, Lake Wales'
     data.loc[data['ConsCode'].eq('3-42'), 'ConsCode'] = 'St. Leo the Great Mission, Lake Wales'
+    data.loc[data['ConsCode'].eq(' 3-42'), 'ConsCode'] = 'St. Leo the Great Mission, Lake Wales'
     data.loc[data['ConsCode'].eq('3-77'), 'ConsCode'] = 'St. Rose of Lima Catholic Church, Poinciana'
+    data.loc[data['ConsCode'].eq(' 3-77'), 'ConsCode'] = 'St. Rose of Lima Catholic Church, Poinciana'
     data.loc[data['ConsCode'].eq('3-94'), 'ConsCode'] = 'St. Matthew Catholic Church, Winter Haven'
+    data.loc[data['ConsCode'].eq(' 3-94'), 'ConsCode'] = 'St. Matthew Catholic Church, Winter Haven'
     data.loc[data['ConsCode'].eq('3-96'), 'ConsCode'] = 'St. Joseph Catholic Church, Winter Haven'
+    data.loc[data['ConsCode'].eq(' 3-96'), 'ConsCode'] = 'St. Joseph Catholic Church, Winter Haven'
     data.loc[data['ConsCode'].eq('3-98'), 'ConsCode'] = 'St. Elizabeth Ann Seton Mission, Bartow'
+    data.loc[data['ConsCode'].eq(' 3-98'), 'ConsCode'] = 'St. Elizabeth Ann Seton Mission, Bartow'
     data.loc[data['ConsCode'].eq('4-12'), 'ConsCode'] = 'Church of Our Saviour, Cocoa Beach'
+    data.loc[data['ConsCode'].eq(' 4-12'), 'ConsCode'] = 'Church of Our Saviour, Cocoa Beach'
     data.loc[data['ConsCode'].eq('4-26'), 'ConsCode'] = 'Ascension Catholic Church, Melbourne'
+    data.loc[data['ConsCode'].eq(' 4-26'), 'ConsCode'] = 'Ascension Catholic Church, Melbourne'
     data.loc[data['ConsCode'].eq('4-48'), 'ConsCode'] = 'Our Lady of Lourdes Catholic Church, Melbourne'
+    data.loc[data['ConsCode'].eq(' 4-48'), 'ConsCode'] = 'Our Lady of Lourdes Catholic Church, Melbourne'
     data.loc[data['ConsCode'].eq('4-49'), 'ConsCode'] = 'Divine Mercy Catholic Church, Merritt Island'
+    data.loc[data['ConsCode'].eq(' 4-49'), 'ConsCode'] = 'Divine Mercy Catholic Church, Merritt Island'
     data.loc[data['ConsCode'].eq('4-50'), 'ConsCode'] = 'Holy Spirit Catholic Church, Mims'
+    data.loc[data['ConsCode'].eq(' 4-50'), 'ConsCode'] = 'Holy Spirit Catholic Church, Mims'
     data.loc[data['ConsCode'].eq('4-52'), 'ConsCode'] = 'Immaculate Conception Catholic Church, Melbourne Beach'
+    data.loc[data['ConsCode'].eq(' 4-52'), 'ConsCode'] = 'Immaculate Conception Catholic Church, Melbourne Beach'
     data.loc[data['ConsCode'].eq('4-71'), 'ConsCode'] = 'St. Joseph Catholic Church, Palm Bay'
+    data.loc[data['ConsCode'].eq(' 4-71'), 'ConsCode'] = 'St. Joseph Catholic Church, Palm Bay'
     data.loc[data['ConsCode'].eq('4-73'), 'ConsCode'] = 'Our Lady of Grace Catholic Church, Palm Bay'
+    data.loc[data['ConsCode'].eq(' 4-73'), 'ConsCode'] = 'Our Lady of Grace Catholic Church, Palm Bay'
     data.loc[data['ConsCode'].eq('4-75'), 'ConsCode'] = 'St. Luke Catholic Church, Barefoot Bay'
+    data.loc[data['ConsCode'].eq(' 4-75'), 'ConsCode'] = 'St. Luke Catholic Church, Barefoot Bay'
     data.loc[data['ConsCode'].eq('4-76'), 'ConsCode'] = 'St. Mary Catholic Church, Rockledge'
+    data.loc[data['ConsCode'].eq(' 4-76'), 'ConsCode'] = 'St. Mary Catholic Church, Rockledge'
     data.loc[data['ConsCode'].eq('4-80'), 'ConsCode'] = 'Holy Name of Jesus Catholic Church, Indialantic'
+    data.loc[data['ConsCode'].eq(' 4-80'), 'ConsCode'] = 'Holy Name of Jesus Catholic Church, Indialantic'
     data.loc[data['ConsCode'].eq('4-83'), 'ConsCode'] = 'Blessed Sacrament Catholic Church, Cocoa'
+    data.loc[data['ConsCode'].eq(' 4-83'), 'ConsCode'] = 'Blessed Sacrament Catholic Church, Cocoa'
     data.loc[data['ConsCode'].eq('4-87'), 'ConsCode'] = 'St. John the Evangelist Catholic Church, Viera'
+    data.loc[data['ConsCode'].eq(' 4-87'), 'ConsCode'] = 'St. John the Evangelist Catholic Church, Viera'
     data.loc[data['ConsCode'].eq('4-88'), 'ConsCode'] = 'St. Teresa Catholic Church, Titusville'
+    data.loc[data['ConsCode'].eq(' 4-88'), 'ConsCode'] = 'St. Teresa Catholic Church, Titusville'
     data.loc[data['ConsCode'].eq('5-17'), 'ConsCode'] = 'Our Lady of Lourdes Catholic Church, Daytona Beach'
+    data.loc[data['ConsCode'].eq(' 5-17'), 'ConsCode'] = 'Our Lady of Lourdes Catholic Church, Daytona Beach'
     data.loc[data['ConsCode'].eq('5-18'), 'ConsCode'] = 'Basilica of St. Paul Catholic Church, Daytona Beach'
+    data.loc[data['ConsCode'].eq(' 5-18'), 'ConsCode'] = 'Basilica of St. Paul Catholic Church, Daytona Beach'
     data.loc[data['ConsCode'].eq('5-19'), 'ConsCode'] = 'St. Ann Catholic Church, DeBary'
+    data.loc[data['ConsCode'].eq(' 5-19'), 'ConsCode'] = 'St. Ann Catholic Church, DeBary'
     data.loc[data['ConsCode'].eq('5-20'), 'ConsCode'] = 'St. Peter Catholic Church, DeLand'
+    data.loc[data['ConsCode'].eq(' 5-20'), 'ConsCode'] = 'St. Peter Catholic Church, DeLand'
     data.loc[data['ConsCode'].eq('5-21'), 'ConsCode'] = 'Our Lady of the Lakes Catholic Church, Deltona'
+    data.loc[data['ConsCode'].eq(' 5-21'), 'ConsCode'] = 'Our Lady of the Lakes Catholic Church, Deltona'
     data.loc[data['ConsCode'].eq('5-23'), 'ConsCode'] = 'San Jose Mission, DeLand'
+    data.loc[data['ConsCode'].eq(' 5-23'), 'ConsCode'] = 'San Jose Mission, DeLand'
     data.loc[data['ConsCode'].eq('5-24'), 'ConsCode'] = 'St. Clare Catholic Church, Deltona'
+    data.loc[data['ConsCode'].eq(' 5-24'), 'ConsCode'] = 'St. Clare Catholic Church, Deltona'
     data.loc[data['ConsCode'].eq('5-25'), 'ConsCode'] = 'St. Gerard Mission, Edgewater'
+    data.loc[data['ConsCode'].eq(' 5-25'), 'ConsCode'] = 'St. Gerard Mission, Edgewater'
     data.loc[data['ConsCode'].eq('5-54'), 'ConsCode'] = 'Our Lady Star of the Sea Catholic Church, New Smyrna Beach'
+    data.loc[data['ConsCode'].eq(' 5-54'), 'ConsCode'] = 'Our Lady Star of the Sea Catholic Church, New Smyrna Beach'
     data.loc[data['ConsCode'].eq('5-55'), 'ConsCode'] = 'Sacred Heart Catholic Church, New Smyrna Beach'
+    data.loc[data['ConsCode'].eq(' 5-55'), 'ConsCode'] = 'Sacred Heart Catholic Church, New Smyrna Beach'
     data.loc[data['ConsCode'].eq('5-69'), 'ConsCode'] = 'St. Brendan Catholic Church, Ormond Beach'
+    data.loc[data['ConsCode'].eq(' 5-69'), 'ConsCode'] = 'St. Brendan Catholic Church, Ormond Beach'
     data.loc[data['ConsCode'].eq('5-70'), 'ConsCode'] = 'Prince of Peace Catholic Church, Ormond Beach'
+    data.loc[data['ConsCode'].eq(' 5-70'), 'ConsCode'] = 'Prince of Peace Catholic Church, Ormond Beach'
     data.loc[data['ConsCode'].eq('5-72'), 'ConsCode'] = 'Church of the Epiphany, Port Orange'
+    data.loc[data['ConsCode'].eq(' 5-72'), 'ConsCode'] = 'Church of the Epiphany, Port Orange'
     data.loc[data['ConsCode'].eq('5-74'), 'ConsCode'] = 'Our Lady of Hope Catholic Church, Port Orange'
+    data.loc[data['ConsCode'].eq(' 5-74'), 'ConsCode'] = 'Our Lady of Hope Catholic Church, Port Orange'
 
     # change MrtlStat based off Gender
+    data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ', na=False)) & (data['LastName'] == data['SRLastName']),'MrtlStat'] = 'Married'
     data.loc[(data['MrtlStat'].str.contains('Religion|Civilly', na=False)),'MrtlStat'] = 'Married'
     data.loc[(data['MrtlStat'].str.contains('Never', na=False)),'MrtlStat', ] = 'Single'
     data.loc[(data['MrtlStat'].str.contains('Unknown', na=False)),'MrtlStat'] = ''
@@ -192,7 +306,8 @@ def process(csv_file: Path, out_dir: Path) -> None:
     # Testcase  5
     df = data[((data['FirstName']!='') & (data['LastName']!='')) & 
                   ((data['SRFirstName']!='') & (data['SRLastName']!='') &
-                  (data['SRDeceased'].str.contains('Yes')==False) & (data['Deceased'].str.contains('Yes')==False) 
+                  (data['SRDeceased'].str.contains('Yes')==False) & (data['Deceased'].str.contains('Yes')==False) &
+                  (data['SRInactive'].str.contains('Yes')==False)
                   )]
     df1 = df[df['PrimAddText'].str.contains("AND|&")==False] 
     data_5 = df1[df1['PrimSalText'].str.contains("AND|&")==False] 
@@ -208,7 +323,7 @@ def process(csv_file: Path, out_dir: Path) -> None:
       data.at[i,'Test Case Failed']+=', 6'
 
     # Testcase  7 
-    df = data[data['SRDeceased'] == 'Yes']
+    df = data[(data['SRDeceased'].str.contains('Yes')==False) & (data['SRInactive'].str.contains('Yes')==True) & (data['Inactive'].str.contains('Yes')==False)]
     df = df[df['PrimAddText'].str.contains("AND|&")]
     data_7 = df[df['PrimSalText'].str.contains("AND|&")]  
     ids = data_7.index.tolist()
@@ -242,7 +357,7 @@ def process(csv_file: Path, out_dir: Path) -> None:
       data.at[i,'Test Case Failed']+=', 11'
 
     # Testcase  12
-    df = data[(data['SRDeceasedDate']!='')]
+    df = data[(data['SRDeceasedDate']!='') & (data['SRInactive'].str.contains('Yes')==False)]
     df = df[df['PrimAddText'].str.contains("AND|&", na=False)]
     data_12 = df[df['PrimSalText'].str.contains("AND|&", na=False)]  
     ids = data_12.index.tolist()
@@ -264,7 +379,7 @@ def process(csv_file: Path, out_dir: Path) -> None:
     for i in ids:
       data.at[i,'Test Case Failed']+=', 14'
 
-    # Test case  15
+    # Test case  15 - This needs reworking. It will output 15, 15 for both A and B
     df = data[data['MrtlStat'].str.contains("Widow|Divorced|Single")]
     data_15_A = df[df['PrimAddText'].str.contains("AND|&", na=False)]
     data_15_B = df[df['PrimSalText'].str.contains("AND|&", na=False)]
@@ -277,7 +392,7 @@ def process(csv_file: Path, out_dir: Path) -> None:
 
     # Total cases
     failed = data[(data['Test Case Failed'] != '')]
-    passed = data[(data['Test Case Failed'] == '')]
+    passed = data[(data['Test Case Failed'] == '') | (data['Notes']=='Passed')]
     failed['Test Case Failed'] = failed['Test Case Failed'].str[1:]
     failed = failed[(failed['Test Case Failed'] != '')]
 
@@ -297,71 +412,194 @@ def process(csv_file: Path, out_dir: Path) -> None:
     # Dataframe that are new containing *
     new = passed[passed['ConsID'].str.contains ("*", regex = False)]
 
-    # Drop ColumnsThat is
+    # Drop Columns for importOmatic file
     impomatic = new.drop(columns = ['KeyInd', 'ConsCodeImpID', 'Nickname', 'Deceased', 
     'DeceasedDate', 'Inactive', 'SRSuff2', 'SRNickname', 'SRDeceased', 'SRDeceasedDate','SRInactive', 
     'PrimAddText', 'PrimSalText', 'AddrImpID', 'AddrType', 'AddrRegion', 'AddrSeasonal', 'AddrSeasFrom', 
     'AddrSeasTo', 'PhoneAddrImpID','PhoneImpID', 'PhoneType','DateTo', 'NameChanged', 'StreetChanged', 
-    'MailingChanged', 'AltChanged', 'Test Case Failed'])
+    'MailingChanged', 'AltChanged', 'Test Case Failed', 'Notes', 'AddrImpID.1', 'PhoneAddrImpID.1', 'PhoneImpID.1'])
 
     # Creates spouse column and fills in with Yes if 
     impomatic.insert(loc = 15, column='Spouse', value = '')
     impomatic.loc[(impomatic['SRLastName'] != ''),'Spouse'] = 'Yes'
+    
+    # creates country column anbd fills in
     impomatic.insert(loc = 17, column='Country', value = '')
     impomatic.loc[(impomatic['AddrCity'] != '') &  impomatic['AddrState'] != '', 'Country'] = 'United States'
 
-    # Drop unwanted columns 
+    # Drop unwanted columns from Passed file
     redata = passed.drop(columns=['ImportID', 'ConsCodeImpID', 'Suff1', 'SRSuff2', 'SRInactive', 
     'AddrRegion','AddrImpID', 'AddrImpID', 'PhoneAddrImpID', 'PhoneImpID', 'PhoneAddrImpID', 
-    'PhoneImpID', 'DateTo', 'SecondID', 'Test Case Failed', 'PrimAddText', 'PrimSalText'])
+    'PhoneImpID', 'DateTo', 'SecondID', 'Test Case Failed', 'PrimAddText', 'PrimSalText',
+    'NameChanged', 'StreetChanged', 'MailingChanged', 'AltChanged', 'Notes' ])
 
-    # If ConsID contains *, remove the row.
+    # If ConsID contains *, remove the row - These are new records that are used for importOmatic
     redata = redata[~redata['ConsID'].str.contains("*", regex = False)].reset_index(drop=True)
 
-    # Change Column Spelling
+    # Change Column Spelling to fit Raiser's Edge Import
     redata.rename(columns = {'DeceasedDate':'DecDate', 'SRDeceasedDate':'SRDecDate'}, inplace = True)
 
     # Add These Columns to a specific location
-    redata.insert(loc = 2, column='ConsCodeImpID', value = '')
-    redata.insert(loc = 4, column='ConsCodeDateFrom', value = '')
-    redata.insert(loc = 5, column='ConsCodeDateTo', value = '')
+    # redata.insert(loc = 2, column='ConsCodeImpID', value = '')
+    # redata.insert(loc = 4, column='ConsCodeDateFrom', value = '')
+    # redata.insert(loc = 5, column='ConsCodeDateTo', value = '')
 
-    # Fill in Gender based on title
+    # Change the absolute mess of Title 1 being used to fit Raiser's Edge
+    redata.loc[redata['Titl1'].eq('MM') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('A') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('B') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('C') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('D') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('E') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('F') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('G') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('H') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('I') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('J') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('J.') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('K') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('L') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('L.') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('M') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('M.') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('N') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('O') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('P') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('Q') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('R') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('S') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('T') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('U') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('V') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('W') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('X') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('Y') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('Z') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('Me') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('Mt') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('Mtr') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('Mtr.') , 'Titl1'] = ''
+    redata.loc[redata['Titl1'].eq('Maj') , 'Titl1'] = 'Maj.'
+    redata.loc[redata['Titl1'].eq('Maj Gen') , 'Titl1'] = 'Maj. Gen.'
+    redata.loc[redata['Titl1'].eq('Mgen') , 'Titl1'] = 'Maj. Gen.'
+    redata.loc[redata['Titl1'].eq('Cmdr') , 'Titl1'] = 'Cmdr.'
+    redata.loc[redata['Titl1'].eq('Br.') , 'Titl1'] = 'Brother'
+    redata.loc[redata['Titl1'].eq('Dn') , 'Titl1'] = 'Deacon'
+    redata.loc[redata['Titl1'].eq('Mr'), 'Titl1'] = 'Mr.'
+    redata.loc[redata['Titl1'].eq('MR'), 'Titl1'] = 'Mr.'
+    redata.loc[redata['Titl1'].eq('Mrs'), 'Titl1'] = 'Mrs.'
+    redata.loc[redata['Titl1'].eq('Ms'), 'Titl1'] = 'Miss'
+    redata.loc[redata['Titl1'].eq('Rev'), 'Titl1'] = 'Rev.'
+    redata.loc[redata['Titl1'].eq('SeÃ±or'), 'Titl1'] = 'Sr.'
+    redata.loc[redata['Titl1'].eq('Sen.'), 'Titl1'] = 'Sr.'
+    redata.loc[redata['Titl1'].eq('Senor'), 'Titl1'] = 'Sr.'
+    redata.loc[redata['Titl1'].eq('Sr'), 'Titl1'] = 'Sr.'
+    redata.loc[redata['Titl1'].eq('Sra'), 'Titl1'] = 'Sra.'
+    redata.loc[redata['Titl1'].eq('Stra.'), 'Titl1'] = 'Sra.'
+    redata.loc[(redata['Titl1'].str.contains('Mr &')),'Titl1'] = 'Mr.'
+    redata.loc[(redata['Titl1'].str.contains('Mr. &')),'Titl1'] = 'Mr.'
+    redata.loc[(redata['Titl1'].str.contains('Mr/')),'Titl1'] = 'Mr.'
+    redata.loc[(redata['Titl1'].str.contains('Mrs')),'Titl1'] = 'Mrs.'
+    redata.loc[(redata['Titl1'].str.contains('Mis')),'Titl1'] = 'Miss'
+    redata.loc[(redata['Titl1'].str.contains('Ms.')),'Titl1'] = 'Miss'
+    redata.loc[(redata['Titl1'].str.contains('Capt')),'Titl1'] = 'Capt.'
+    redata.loc[(redata['Titl1'].str.contains('CAPT')),'Titl1'] = 'Capt.'
+    redata.loc[(redata['Titl1'].str.contains('Cpt')),'Titl1'] = 'Capt.'
+    redata.loc[(redata['Titl1'].str.contains('CPT')),'Titl1'] = 'Capt.'
+    redata.loc[(redata['Titl1'].str.contains('Commander')),'Titl1'] = 'Cmdr.'
+    redata.loc[(redata['Titl1'].str.contains('COL')),'Titl1'] = 'Col.'
+    redata.loc[(redata['Titl1'].str.contains('Col')),'Titl1'] = 'Col.'
+    redata.loc[(redata['Titl1'].str.contains('Colonel')),'Titl1'] = 'Col.'
+    redata.loc[(redata['Titl1'].str.contains('Dcn')),'Titl1'] = 'Deacon'
+    redata.loc[(redata['Titl1'].str.contains('DCN')),'Titl1'] = 'Deacon'
+    redata.loc[(redata['Titl1'].str.contains('Dea')),'Titl1'] = 'Deacon'
+    redata.loc[(redata['Titl1'].str.contains('Dr')),'Titl1'] = 'Dr.'
+    redata.loc[(redata['Titl1'].str.contains('Rev.')),'Titl1'] = 'Rev.'
+    redata.loc[(redata['Titl1'].str.contains('Rev. M')),'Titl1'] = 'Rev. Mr.'
+    redata.loc[(redata['Titl1'].str.contains('Rev M')),'Titl1'] = 'Rev. Mr.'
+    redata.loc[(redata['Titl1'].str.contains('Senor ')),'Titl1'] = 'Sr.'
+    redata.loc[(redata['Titl1'].str.contains('Sr ')),'Titl1'] = 'Sr.'
+    redata.loc[(redata['SRTitl1'].str.contains('')),'SRTitl1'] = ''
+    redata.loc[(redata['SRTitl1'].str.contains('')),'SRTitl1'] = ''
+    redata.loc[(redata['SRTitl1'].str.contains('')),'SRTitl1'] = ''
+    redata.loc[(redata['SRTitl1'].str.contains('')),'SRTitl1'] = ''
+
+    # Fill in Gender based on title - I think this can be removed given Lines 27 - 45
     redata.loc[redata['Titl1'].eq('Mr.'), 'Gender'] = 'Male'
-    redata.loc[redata['Titl1'].eq('Mr'), 'Gender'] = 'Male'
     redata.loc[redata['Titl1'].eq('Mrs.'), 'Gender'] = 'Female'
-    redata.loc[redata['Titl1'].eq('Mrs'), 'Gender'] = 'Female'
     redata.loc[redata['Titl1'].eq('Ms.'), 'Gender'] = 'Female'
-    redata.loc[redata['Titl1'].eq('Ms'), 'Gender'] = 'Female'
     redata.loc[redata['Titl1'].eq('Miss'), 'Gender'] = 'Female'
     redata.loc[redata['SRTitl1'].eq('Mr.'), 'SRGender'] = 'Male'
-    redata.loc[redata['SRTitl1'].eq('Mr'), 'SRGender'] = 'Male'
     redata.loc[redata['SRTitl1'].eq('Mrs.'), 'SRGender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Mrs'), 'SRGender'] = 'Female'
     redata.loc[redata['SRTitl1'].eq('Ms.'), 'SRGender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Ms'), 'SRGender'] = 'Female'
     redata.loc[redata['SRTitl1'].eq('Miss'), 'SRGender'] = 'Female'
-
-    # change marriage status 
-    redata.loc[(redata['MrtlStat'].str.contains('Civilly')),'MrtlStat'] = 'Married'
-    redata.loc[(redata['MrtlStat'].str.contains('Never')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Unknown')),'MrtlStat'] = ''
 
     # Check Gender Change Gender Based on Title
     redata.loc[redata['Titl1'].eq('Mr.') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Male'
-    redata.loc[redata['Titl1'].eq('Mr') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Male'
     redata.loc[redata['Titl1'].eq('Mrs.') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Female'
-    redata.loc[redata['Titl1'].eq('Mrs') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Female'
     redata.loc[redata['Titl1'].eq('Ms.') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Female'
-    redata.loc[redata['Titl1'].eq('Ms') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Female'
     redata.loc[redata['Titl1'].eq('Miss') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Female'
     redata.loc[redata['SRTitl1'].eq('Mr.') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Male'
-    redata.loc[redata['SRTitl1'].eq('Mr') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Male'
     redata.loc[redata['SRTitl1'].eq('Mrs.') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Mrs') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
     redata.loc[redata['SRTitl1'].eq('Ms.') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Ms') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
     redata.loc[redata['SRTitl1'].eq('Miss') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
+
+    # Change marriage status to fit Raiser's Edge Import
+    redata.loc[(redata['MrtlStat'].str.contains('Civil')),'MrtlStat'] = 'Married'
+    redata.loc[(redata['MrtlStat'].str.contains('Convalidation')),'MrtlStat'] = 'Married'
+    redata.loc[(redata['MrtlStat'].str.contains('Marriage')),'MrtlStat'] = 'Married'
+    redata.loc[(redata['MrtlStat'].str.contains('Married')),'MrtlStat'] = 'Married'
+    redata.loc[(redata['MrtlStat'].str.contains('married')),'MrtlStat'] = 'Married'
+    redata.loc[(redata['MrtlStat'].str.contains('Widow')),'MrtlStat'] = 'Widowed'
+    redata.loc[(redata['MrtlStat'].str.contains('Widow/Er')),'MrtlStat'] = 'Widowed'
+    redata.loc[(redata['MrtlStat'].str.contains('Deceased')),'MrtlStat'] = 'Widowed'
+    redata.loc[(redata['MrtlStat'].str.contains('Never')),'MrtlStat'] = 'Single'
+    redata.loc[(redata['MrtlStat'].str.contains('Engaged')),'MrtlStat'] = 'Single'
+    redata.loc[(redata['MrtlStat'].str.contains('Not Married')),'MrtlStat'] = 'Single'
+    redata.loc[(redata['MrtlStat'].str.contains('Invalid Marriage')),'MrtlStat'] = 'Single'
+    redata.loc[(redata['MrtlStat'].str.contains('Living Together')),'MrtlStat'] = 'Single'
+    redata.loc[(redata['MrtlStat'].str.contains('Cohabitating')),'MrtlStat'] = 'Single'
+    redata.loc[(redata['MrtlStat'].str.contains('Single')),'MrtlStat'] = 'Single'
+    redata.loc[(redata['MrtlStat'].str.contains('Unknown')),'MrtlStat'] = ''
+    redata.loc[(redata['MrtlStat'].str.contains('Not Listed')),'MrtlStat'] = ''
+    redata.loc[(redata['MrtlStat'].str.contains('Not Sure')),'MrtlStat'] = ''
+    redata.loc[(redata['MrtlStat'].str.contains('None')),'MrtlStat'] = 'Single'
+    redata.loc[(redata['MrtlStat'].str.contains('Annulment')),'MrtlStat'] = 'Divorced'
+    redata.loc[(redata['MrtlStat'].str.contains('Annulled')),'MrtlStat'] = 'Divorced'
+    redata.loc[(redata['MrtlStat'].str.contains('Divorced')),'MrtlStat'] = 'Divorced'
+
+    # Standardize Phone Type and remove these horrific phone types being used. 
+    redata.loc[(redata['PhoneType'].str.contains('Her')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('His')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Fathers')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Father')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Mother\'s')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Mom')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Dad\'s')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Mobile')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Unknown')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Text-')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Text')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('/')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Ms.')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Cel')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Cell')),'PhoneType'] = 'Alternate Home'
+    redata.loc[(redata['PhoneType'].str.contains('Grandmother')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('Home')),'PhoneType'] = 'Home'
+    redata.loc[(redata['PhoneType'].str.contains('ICOE')),'PhoneType'] = 'Cell'
+    redata.loc[(redata['PhoneType'].str.contains('wrk|Wrk|Work|work')),'PhoneType'] = 'Work'
+    redata.loc[(redata['PhoneType'].str.contains('Alt|alt')),'PhoneType'] = 'Cell 2'
+
+  # Change State column
+    redata.loc[(redata['AddrState'].str.contains('Fl.')),'AddrState'] = 'FL'
+    redata.loc[(redata['AddrCity'].str.contains(' Fl')),'AddrState'] = 'FL'
+    redata.loc[(redata['AddrCity'].str.contains(' FL')),'AddrState'] = 'FL'
+    redata.loc[(redata['AddrCity'].str.contains(', Fl')),'AddrState'] = 'FL'
+    
+    # Replaces instacnes where state is in the same cell as city. 
+    redata[['AddrCity', 'State_Holder']] = redata['AddrCity'].str.replace(', ', ' ').str.replace(' ', ', ').str.split(', ', 1, expand = True)
+    redata['AddrState'] = np.where(redata['AddrState'].isna(), redata['State_Holder'], redata['AddrState'])
+    redata = redata.drop(columns = ['State_Holder'])
 
     # Clean addresses in redata
     def normalizeredata(redata):
@@ -465,7 +703,8 @@ def process(csv_file: Path, out_dir: Path) -> None:
         redata['AddrLines'] = redata['AddrLines'].str.replace('\\/n',' ',regex=True)
         return redata
     renew = normalizeredata(redata)
-    # Clean addresses in impomatic
+
+    # Clean addresses in impomatic - tried to do this before parsing out ImportOmatic file, but caused more trouble than was worth. 
     def normalizeimpomatic(impomatic):
         impomatic = impomatic.copy()
         impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Apartment ','Apt ',regex=True)
@@ -568,18 +807,23 @@ def process(csv_file: Path, out_dir: Path) -> None:
         return impomatic
     newimpomatic = normalizeimpomatic(impomatic)
 
-    print(out_dir / failed_csv)  # '/users/path/my_file/Failed.csv'
-    print(out_dir / dup_csv)     # '/users/path/my_file/duplicated.csv'
-    print(out_dir / RE_Data)     # '/users/path/my_file/RE_Data.csv'
-    print(out_dir / passed_csv)  # '/users/path/my_file/Passed.csv'
-    print(out_dir / import_csv)  # '/users/path/my_file/ImportOmatic.csv'
+    # printing files to show output directories
+    print(out_dir  / rawdata_csv) # '/users/path/my_file/RawParishData.csv'
+    print(out_dir / failed_csv)   # '/users/path/my_file/Failed.csv'
+    print(out_dir / dup_csv)      # '/users/path/my_file/duplicated.csv'
+    print(re_dir  / renew_csv)    # '/users/path/my_file/RE_Data.csv'
+    print(out_dir / passed_csv)   # '/users/path/my_file/Passed.csv'
+    print(re_dir  / import_csv)   # '/users/path/my_file/ImportOmatic.csv'
 
+    # sorting files for output directories
     failed.to_csv(out_dir / failed_csv, index=False)
     duplicated.to_csv(out_dir / dup_csv, index=False)
-    RE_Data.to_csv(out_dir / RE_Data, index=False)
+    renew.to_csv(re_dir  / renew_csv, index=False)
     passed.to_csv(out_dir / passed_csv, index=False)
-    newimpomatic.to_csv(out_dir / import_csv, index=False)
+    newimpomatic.to_csv(re_dir  / import_csv, index=False)
+    rawdata.to_csv(out_dir / rawdata_csv, index=False)
     
+# This names the folder that holds all files after the parish. It will sort files that the parish uses and that Raiser's Edge uses
 def main(base_dir: Path) -> None:
 
     print(f'Processing files in {base_dir}: \n')
@@ -590,14 +834,19 @@ def main(base_dir: Path) -> None:
         # ex. csv_file = "/users/path/my_file.csv"
         
         name: str = csv_file.stem   # name = "my_file"
+        reimportfiles: str = 'REImportFiles'
         
         output_dir: Path = base_dir / name  # output_dir = "/users/path/my_file"
+        reout_dir: Path = base_dir / name / output_dir / reimportfiles
 
         print(f'Creating directory "{output_dir}"')
         Path.mkdir(output_dir, exist_ok=True)
 
+        print(f'Creating directory "{reout_dir}"')
+        Path.mkdir(reout_dir, exist_ok=True)
+
         print(f'Processing "{csv_file}"')
-        process(csv_file=csv_file, out_dir=output_dir)
+        process(csv_file=csv_file, out_dir=output_dir, re_dir=reout_dir)
 
         print(f'Completed processing\n')
         n_process += 1
