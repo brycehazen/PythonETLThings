@@ -29,6 +29,7 @@ for file in files:
     df = pd.read_csv(file, encoding='latin-1', low_memory=False)
     # Replaces all spaces with nan
     df = df.replace([''], np.nan)
+
     # drops row if address is blank
     # df = df.dropna(subset=['CnAdrPrf_Addrline1'])
     # drop row if all name information are blank - estates and orgs
@@ -210,15 +211,15 @@ for file in files:
             salutation = str(row['CnBio_Title_1']) + ' and ' + str(row['CnSpSpBio_Title_1']) + ' ' + str(row['CnBio_Last_Name'])
 
         # Gives: Same_Last_Name_Same_Title_Special_3
-        # Senator Bryce Howard and Dr. Thien Nguyen
-        # Senator Howard and Dr. Nguyen
+        # Dr. Bryce Howard and Dr. Jen Howard
+        # Dr. Howard and Dr. Howard
         elif (row['CnBio_Marital_status'] == 'SameLastNameSameTitleSpecial_3'):
             addressee = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_First_Name']) + ' ' + str(row['CnBio_Last_Name']) + ' and ' + str(row['CnSpSpBio_Title_1']) + ' ' + str(row['CnSpSpBio_First_Name']) + ' ' +  str( row['CnSpSpBio_Last_Name'])
             salutation = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_Last_Name']) + ' and ' + str(row['CnSpSpBio_Title_1']) + ' ' + str(row['CnSpSpBio_Last_Name'])
 
         # Same_Last_Name_Both_Specical_Title_4 
-        # Senator Bryce Howard and Dr. Thien Nguyen
-        # Senator Howard and Dr. Nguyen
+        # Senator Bryce Howard and Dr. Jen Howard
+        # Senator Howard and Dr. Howard
         elif (row['CnBio_Marital_status'] == 'SameLastNameBothSpecicalTitle_4'):
             addressee = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_First_Name']) + ' ' + str(row['CnBio_Last_Name']) + ' and ' + str(row['CnSpSpBio_Title_1']) + ' ' + str(row['CnSpSpBio_First_Name']) + ' ' +  str( row['CnSpSpBio_Last_Name'])
             salutation = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_Last_Name']) + ' and ' + str(row['CnSpSpBio_Title_1']) + ' ' + str(row['CnSpSpBio_Last_Name'])
