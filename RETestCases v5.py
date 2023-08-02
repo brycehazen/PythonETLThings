@@ -23,7 +23,7 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     if 'Notes' not in data.columns:
       data["Notes"] = " "
 
-    # change title based off Gender - This has been approved by the dios 
+    # change title based off Gender - This has been approved by the dios despite not knowing if it's title or gender that's correct. 
     data.loc[data['Titl1'].eq('Mr'), 'Titl1'] = 'Mr.'
     data.loc[data['Titl1'].eq('Mrs'), 'Titl1'] = 'Mrs.'
     data.loc[data['Titl1'].eq('Ms'), 'Titl1'] = 'Ms.'
@@ -254,142 +254,154 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     data = data.replace(np.nan,'')
     data.insert(0, 'ID', range(0, len(data)))
 
-    # Testcase 1
-    data_1 = data[(((data['Gender'] == 'Male') & (data['SRGender'] == 'Male')) & 
-                  (
-                      (data['PrimAddText'].str.contains('Ms')) | (data['PrimAddText'].str.contains('Mrs')) | 
-                      (data['PrimSalText'].str.contains('Ms')) | (data['PrimSalText'].str.contains('Mrs'))
-                      ))]
-    ids = data_1.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 1'
+    # Testcase 1 - Both genders are Male but addressee or salutation contains Ms. or Mrs.
+    def check_gender_and_salutation(row):
+        if (row['Gender'] == 'Male') and (row['SRGender'] == 'Male') and \
+          (('Ms' in row['PrimAddText']) or ('Mrs' in row['PrimAddText']) or
+            ('Ms' in row['PrimSalText']) or ('Mrs' in row['PrimSalText'])):
+            return row['Test Case Failed'] + ', 1'
+        else:
+            return row['Test Case Failed']
 
-    # Testcase 2
-    data_2 = data[(((data['Gender'] == 'Female') & (data['SRGender'] == 'Female')) & 
-                  (
-                      (data['PrimAddText'].str.contains('Ms')) | (data['PrimAddText'].str.contains('Mrs')) | 
-                      (data['PrimSalText'].str.contains('Ms')) | (data['PrimSalText'].str.contains('Mrs'))
-                      ))]
-    ids = data_2.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 2'
+    data['Test Case Failed'] = data.apply(check_gender_and_salutation, axis=1)
 
-    # Testcase 3
-    data_3 = data[(data['FirstName'] == data['SRFirstName'])]
-    ids = data_3.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 3'
+    #	Testcase 2 - Both genders are female but addressee or salutation contains Mr. 
+    def check_mr(row):
+        if (row['Gender'] == 'Female') and (row['SRGender'] == 'Female') and \
+          (('Mr.' in row['PrimAddText']) or ('Mr.' in row['PrimSalText'])):
+            return row['Test Case Failed'] + ', 2'
+        else:
+            return row['Test Case Failed']
 
-    # Testcase 4
-    def find_value_column(row):
-        return row.LastName not in row.PrimSalText
+    data['Test Case Failed'] = data.apply(check_mr, axis=1)
 
-    data_4 = data[data.apply(find_value_column, axis=1)][['LastName', 'PrimSalText']]
-    ids = data_4.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 4'
+    # Testcase 3 - First name on the record is the same for the spouse.
+    def check_first_name(row):
+        if row['FirstName'] != '' and row['SRFirstName'] != '' and row['FirstName'] == row['SRFirstName']:
+            return row['Test Case Failed'] + ', 3'
+        else:
+            return row['Test Case Failed']
 
-    # Testcase  4
-    def find_value_column(row):
-        return row.LastName not in row.PrimAddText
+    data['Test Case Failed'] = data.apply(check_first_name, axis=1)
 
-    data_4 = data[data.apply(find_value_column, axis=1)][['LastName', 'PrimAddText']]
-    ids = data_4.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 4'
+    # Testcase 4 - Addressee or salutation does not contain the last name of the record
+    # Skip test if IsInactive = Yes or SRInactive = Yes
+    def check_lastname_in_primadd_sal(row):
+        if ((row['IsInactive'] != 'Yes') or (row['SRInactive'] != 'Yes')) and (row['LastName'] not in row['PrimAddText']) and \
+          (row['LastName'] not in row['PrimSalText']):
+            return row['Test Case Failed'] + ', 4'
+        else:
+            return row['Test Case Failed']
 
-    data["Test Case Failed"].replace({", 4, 4": ", 4"}, inplace=True)
-    data["Test Case Failed"].replace({", 3, 4, 4": ", 4"}, inplace=True)
-    data["Test Case Failed"].replace({", 2, 4, 4": ", 4"}, inplace=True)
-    data["Test Case Failed"].replace({", 1, 4, 4": ", 4"}, inplace=True)
+    data['Test Case Failed'] = data.apply(check_lastname_in_primadd_sal, axis=1)
 
-    # Testcase  5
-    df = data[((data['FirstName']!='') & (data['LastName']!='')) & 
-                  ((data['SRFirstName']!='') & (data['SRLastName']!='') &
-                  (data['SRDeceased'].str.contains('Yes')==False) & (data['Deceased'].str.contains('Yes')==False) &
-                  (data['SRInactive'].str.contains('Yes')==False)
-                  )]
-    df1 = df[df['PrimAddText'].str.contains("AND|&")==False] 
-    data_5 = df1[df1['PrimSalText'].str.contains("AND|&")==False] 
-    ids = data_5.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 5'
+    # Testcase 5 - Record has Name information, the Spouse has name information, no one is marked deceased,
+    def check_addressee_salutation(row):
+        if (row['FirstName'] != '') and (row['LastName'] != '') and \
+          (row['SRFirstName'] != '') and (row['SRLastName'] != '') and \
+          ('Yes' not in row['SRDeceased']) and ('Yes' not in row['Deceased']) and \
+          ('Yes' not in row['SRInactive']) and (row['IsInactive'] != 'Yes') and \
+          ('&' not in row['PrimAddText']) and ('&' not in row['PrimSalText']) and \
+          ('AND' not in row['PrimAddText'].upper()) and ('AND' not in row['PrimSalText'].upper()):
+            return row['Test Case Failed'] + ', 5'
+        else:
+            return row['Test Case Failed']
 
-    # Testcase  6
-    data['BDay'] = pd.to_datetime(data['BDay'], errors="coerce")
-    data_6 = data.loc[(data['BDay'] >= '01/01/2005') & (data['BDay'].notnull())]
+    data['Test Case Failed'] = data.apply(check_addressee_salutation, axis=1)
+
+    # Testcase  6 -	Head of house hold is not above the age of 18.
+    data['BDay']= pd.to_datetime(data['BDay'], errors="coerce")
+    data_6 = data.loc[data['BDay'] >= '01/01/2004']
     ids = data_6.index.tolist()
     for i in ids:
       data.at[i,'Test Case Failed']+=', 6'
 
-    # Testcase  7 
-    df = data[(data['SRDeceased'].str.contains('Yes')==False) & (data['SRInactive'].str.contains('Yes')==True) & (data['Inactive'].str.contains('Yes')==False)]
-    df = df[df['PrimAddText'].str.contains("AND|&")]
-    data_7 = df[df['PrimSalText'].str.contains("AND|&")]  
+    # Testcase 7 - Addressee or salutation contains "&" or "and" but it shows the Spouse as deceased
+    # If SRinactive and inactive is yes skip this test
+    df = data[(data['SRDeceased'].str.contains('Yes') == True) &
+              (data['SRInactive'].str.contains('Yes') == True) &
+              (data['IsInactive'] != 'Yes')]
+
+    df = df[df['PrimAddText'].str.contains(" AND |&| and | And ")]
+    data_7 = df[df['PrimSalText'].str.contains(" AND |&| and | And ")]
     ids = data_7.index.tolist()
     for i in ids:
-      data.at[i,'Test Case Failed']+=', 7'
+        data.at[i, 'Test Case Failed'] += ', 7'
 
-    # Testcase  8 
-    df = data[(data['SRLastName'] == '') | (data['SRFirstName']=='')]
-    df = df[df['PrimAddText'].str.contains("AND|&", na=False)]
-    data_8 = df[df['PrimSalText'].str.contains("AND|&", na=False)]  
-    ids = data_8.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 8'
+    # Testcase 8 - Addressee or salutation contains & or AND, but spouse's last or first name is empty.
+    def check_and_in_addressee_salutation(row):
+        if (row['SRLastName'] == '') and (row['SRFirstName'] == '') and \
+          ((" AND " in row['PrimAddText']) or ("&" in row['PrimAddText']) or (" and " in row['PrimAddText']) or (" And " in row['PrimAddText']) or \
+            (" AND " in row['PrimSalText']) or ("&" in row['PrimSalText']) or (" and " in row['PrimSalText']) or (" And " in row['PrimSalText'])):
+            return row['Test Case Failed'] + ', 8'
+        else:
+            return row['Test Case Failed']
 
-    # Testcase  9
-    data_9 = data[((data['SRDeceasedDate'] != '') & (data['MrtlStat'] != 'Widowed'))]
-    ids = data_9.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 9'
+    data['Test Case Failed'] = data.apply(check_and_in_addressee_salutation, axis=1)
 
-    # Testcase  10
+    # Testcase 9 -SRDeceasedDate is not empty, MrtlStat is not one of, and IsInactive is not 'Yes'
+    def check_deceased_and_status(row):
+        if (row['SRDeceasedDate'] != '') and (row['MrtlStat'] not in ['Widowed', 'Widower', 'Widow']) and (row['IsInactive'] != 'Yes'):
+            return row['Test Case Failed'] + ', 9'  # Replace X with the appropriate Testcase number
+        else:
+            return row['Test Case Failed']
+
+    data['Test Case Failed'] = data.apply(check_deceased_and_status, axis=1)
+
+
+    # Testcase  10 - Spouse shows a deceased date, but inactive does not show yes. Does not equal to yes will pick up Blank and no.
     data_10 = data[(data['SRDeceasedDate']!='') & (df['SRInactive']!='Yes')]
     ids = data_10.index.tolist()
     for i in ids:
       data.at[i,'Test Case Failed']+=', 10'
 
-    # Testcase  11
+    # Testcase  11 - Record shows a deceased date, but inactive does not show yes. Does not equal to yes will pick up Blank and no.
     data_11 = data[(data['DeceasedDate']!='') & (data['Inactive']!='Yes')]
     ids = data_11.index.tolist()
     for i in ids:
       data.at[i,'Test Case Failed']+=', 11'
 
-    # Testcase  12
+    # Testcase  12 - There is a deceased date but  addressee or salutation contains "&" or "and" If Srinactive and inactive is yes skip this test
     df = data[(data['SRDeceasedDate']!='') & (data['SRInactive'].str.contains('Yes')==False)]
-    df = df[df['PrimAddText'].str.contains("AND|&", na=False)]
-    data_12 = df[df['PrimSalText'].str.contains("AND|&", na=False)]  
+    df = df[df['PrimAddText'].str.contains("AND|&|and|And", na=False)]
+    data_12 = df[df['PrimSalText'].str.contains("AND|&|and|And", na=False)]  
     ids = data_12.index.tolist()
     for i in ids:
       data.at[i,'Test Case Failed']+=', 12'
 
-    # Testcase 13
+    # Testcase 13 - Spouse name information is filled in but marital status shows single. 
     df = data[((data['SRLastName'] != '') | (data['SRFirstName'] != ''))]
     data_13 = df[df['MrtlStat'] == 'single']
     ids = data_13.index.tolist()
     for i in ids:
       data.at[i,'Test Case Failed']+=', 13'
 
-    # Testcase  14
+    # Testcase  14 -Marital status is blank but Addressee or salutation has "&" or "and". If there is Spouse name 
+    # informationn they should be marked as "Partner" if they are not married but living together. 
     df = data[data['MrtlStat'] == '']
-    df = df[df['PrimAddText'].str.contains("AND|&", na=False)]
-    data_14 = df[df['PrimSalText'].str.contains("AND|&", na=False)]
+    df = df[df['PrimAddText'].str.contains("AND|&|and|And", na=False)]
+    data_14 = df[df['PrimSalText'].str.contains("AND|&|and|And", na=False)]
     ids = data_14.index.tolist()
     for i in ids:
       data.at[i,'Test Case Failed']+=', 14'
-
-    # Test case  15 
+    
+    # Test case  15  Marital status does not reflect what is in the addressee/salutation i.e. widowed, but two people are in the add/sal, married but only one perosn is in add/sal
     df = data[data['MrtlStat'].str.contains("Widow|Divorced|Single")]
-    data_15 = df[((df['PrimAddText'].str.contains("AND|&", na=False)) | (df['PrimSalText'].str.contains("AND|&", na=False))) & ~((df['IsInactive'] == 'Yes') | (df['Inactive'] == 'Yes') | (df['SRInactive'] == 'Yes'))]
+    data_15 = df[((df['PrimAddText'].str.contains(" AND |&| and | And ", na=False)) | (df['PrimSalText'].str.contains(" AND |&| and | And ", na=False))) & ~((df['IsInactive'] == 'Yes') | (df['Inactive'] == 'Yes') | (df['SRInactive'] == 'Yes'))]
     ids = data_15.index.tolist()
     for i in ids:
         data.at[i, 'Test Case Failed'] += ', 15'
 
+    # # Total cases
+    # failed = data[(data['Test Case Failed'] != '')]
+    # passed = data[(data['Test Case Failed'] == '') | (data['Notes']=='Passed')]
+    # failed.loc[:, 'Test Case Failed'] = failed['Test Case Failed'].str[1:]
+    # failed = failed[(failed['Test Case Failed'] != '')]
     # Total cases
-    failed = data[(data['Test Case Failed'] != '')]
-    passed = data[(data['Test Case Failed'] == '') | (data['Notes']=='Passed')]
-    failed['Test Case Failed'] = failed['Test Case Failed'].str[1:]
+
+    failed = data[(data['Test Case Failed'] != '') & (data['Notes'] != 'Passed')].copy()
+    passed = data[(data['Test Case Failed'] == '') | (data['Notes'] == 'Passed')].copy()
+    failed.loc[:, 'Test Case Failed'] = failed['Test Case Failed'].str[1:]
     failed = failed[(failed['Test Case Failed'] != '')]
 
     # Clean up
@@ -540,29 +552,6 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     redata.loc[redata['SRTitl1'].eq('Ms.') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
     redata.loc[redata['SRTitl1'].eq('Miss') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
 
-    # Change marriage status to fit Raiser's Edge Import
-    redata.loc[(redata['MrtlStat'].str.contains('Civil')),'MrtlStat'] = 'Married'
-    redata.loc[(redata['MrtlStat'].str.contains('Convalidation')),'MrtlStat'] = 'Married'
-    redata.loc[(redata['MrtlStat'].str.contains('Marriage')),'MrtlStat'] = 'Married'
-    redata.loc[(redata['MrtlStat'].str.contains('Married')),'MrtlStat'] = 'Married'
-    redata.loc[(redata['MrtlStat'].str.contains('married')),'MrtlStat'] = 'Married'
-    redata.loc[(redata['MrtlStat'].str.contains('Widow')),'MrtlStat'] = 'Widowed'
-    redata.loc[(redata['MrtlStat'].str.contains('Widow/Er')),'MrtlStat'] = 'Widowed'
-    redata.loc[(redata['MrtlStat'].str.contains('Deceased')),'MrtlStat'] = 'Widowed'
-    redata.loc[(redata['MrtlStat'].str.contains('Never')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Engaged')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Not Married')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Invalid Marriage')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Living Together')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Cohabitating')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Single')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Unknown')),'MrtlStat'] = ''
-    redata.loc[(redata['MrtlStat'].str.contains('Not Listed')),'MrtlStat'] = ''
-    redata.loc[(redata['MrtlStat'].str.contains('Not Sure')),'MrtlStat'] = ''
-    redata.loc[(redata['MrtlStat'].str.contains('None')),'MrtlStat'] = 'Single'
-    redata.loc[(redata['MrtlStat'].str.contains('Annulment')),'MrtlStat'] = 'Divorced'
-    redata.loc[(redata['MrtlStat'].str.contains('Annulled')),'MrtlStat'] = 'Divorced'
-    redata.loc[(redata['MrtlStat'].str.contains('Divorced')),'MrtlStat'] = 'Divorced'
 
     # Standardize Phone Type and remove these horrific phone types being used. 
     redata.loc[(redata['PhoneType'].str.contains('Her')),'PhoneType'] = 'Cell'
@@ -802,6 +791,10 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
         impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('\\/n',' ',regex=True)
         return impomatic
     newimpomatic = normalizeimpomatic(impomatic)
+    
+    # Reorder columns with 'Test Case Failed' at the start
+    cols = ['Test Case Failed'] + [col for col in failed.columns if col != 'Test Case Failed']
+    failed = failed[cols]
 
     # printing files to show output directories
     print(out_dir  / rawdata_csv) # '/users/path/my_file/RawParishData.csv'
