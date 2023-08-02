@@ -36,6 +36,27 @@ for file in files:
     # drops duplicate ConsID
     df = df.drop_duplicates(subset=['CnBio_ID'])
 
+    
+    def swap_rows_based_on_gender(row):
+        if row['CnBio_Gender'] == 'Female' and row['CnSpSpBio_Gender'] == 'Male':
+            temp_gender = row['CnBio_Gender']
+            temp_first_name = row['CnBio_First_Name']
+            temp_last_name = row['CnBio_Last_Name']
+            temp_title = row['CnBio_Title_1']
+
+            row['CnBio_Gender'] = row['CnSpSpBio_Gender']
+            row['CnBio_First_Name'] = row['CnSpSpBio_First_Name']
+            row['CnBio_Last_Name'] = row['CnSpSpBio_Last_Name']
+            row['CnBio_Title_1'] = row['CnSpSpBio_Title_1']
+
+            row['CnSpSpBio_Gender'] = temp_gender
+            row['CnSpSpBio_First_Name'] = temp_first_name
+            row['CnSpSpBio_Last_Name'] = temp_last_name
+            row['CnSpSpBio_Title_1'] = temp_title
+        return row
+
+    df = df.apply(swap_rows_based_on_gender, axis=1)
+
 
     # This function update Ms and Miss to mrs if the last names are the same and marital status is married 2016-8067
     def update_titles_if_married(row):
@@ -139,7 +160,8 @@ for file in files:
     # Standard Add/sal for married couple
     def Standard_Add_Sal_7(row): 
         global commonTitles
-        if ((row['CnBio_Last_Name'] == row['CnSpSpBio_Last_Name']) and (row['CnBio_Marital_status'] != 'Widowed') and (row['CnBio_Marital_status'] == 'Married') and ((row['CnBio_Title_1'] in commonTitles) or (row['CnSpSpBio_Title_1'] in commonTitles)  ) ):
+        if ((row['CnBio_Last_Name'] == row['CnSpSpBio_Last_Name']) and (row['CnBio_Marital_status'] != 'Widowed') and 
+            (row['CnBio_Marital_status'] == 'Married') and ((row['CnBio_Title_1'] in commonTitles) or (row['CnSpSpBio_Title_1'] in commonTitles)  ) ):
             row['CnBio_Marital_status'] = 'StandardAddSal_7'
         return row
     df = df.apply(Standard_Add_Sal_7, axis=1) 
@@ -237,13 +259,13 @@ for file in files:
 
 
     # list of columns_to_drop 
-    columns_to_drop = ['CnAdrPrf_Type', 'CnAdrPrf_Sndmailtthisaddrss', 'CnSpSpBio_Anonymous', 'CnBio_Gender', 'CnSpSpBio_Gender', 
-                       'CnSpSpBio_Inactive', 'CnSpSpBio_Deceased',   'CnSpSpBio_Marital_status', 'CnBio_Marital_status']
+    #columns_to_drop = ['CnAdrPrf_Type', 'CnAdrPrf_Sndmailtthisaddrss', 'CnSpSpBio_Anonymous', 'CnBio_Gender', 'CnSpSpBio_Gender', 
+                       #'CnSpSpBio_Inactive', 'CnSpSpBio_Deceased',   'CnSpSpBio_Marital_status', 'CnBio_Marital_status']
     
 #'CnBio_Inactive','CnSpSpBio_ID', 'CnBio_Deceased', 'CnBio_Anonymous', 'CnBio_Title_1', 'CnSpSpBio_Title_1', 'CnSpSpBio_First_Name', 'CnSpSpBio_Last_Name','CnBio_Org_Name',,'CnBio_Org_ID', 
 
     # drops columns in list
-    df = df.drop(columns=columns_to_drop)
+    #df = df.drop(columns=columns_to_drop)
     # Sort the DataFrame by 'CnBio_Last_Name' and 'CnBio_First_Name'
     
     # Split the file name and extension
@@ -253,6 +275,3 @@ for file in files:
     new_file = base + '_clean' + ext
     # Save the DataFrame to the new file name in the current working directory
     df.to_csv(f'{new_file}', index=False)
-
-
-
