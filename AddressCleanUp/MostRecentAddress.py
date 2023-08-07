@@ -11,13 +11,28 @@ df = pd.read_csv(file_name, encoding='latin-1', low_memory=False)
 filtered_df = df[df['CnAdrAll_1_01_Addrline1'].notna() & (df['CnAdrAll_1_01_Addrline1'] != "")]
 
 # Create dataframe for individual's address and add a Source column
-individual_df = filtered_df[['CnBio_ID', 'CnBio_No_Valid_Addresses', ...]]
+individual_columns = [
+    'CnBio_ID', 'CnBio_No_Valid_Addresses', 'CnAdrAll_1_01_Addrline1', 
+    'CnAdrAll_1_01_City', 'CnAdrAll_1_01_State', 'CnAdrAll_1_01_ZIP',
+    'CnAdrAll_1_01_Type', 'CnAdrAll_1_01_Preferred', 'CnAdrAll_1_01_DateAdded',
+    'CnAdrAll_1_01_DateLastChanged', 'CnAdrAll_1_01_Type2', 'CnAdrAll_1_01_Indicator', 
+    'CnAdrAll_1_01_Import_ID'
+]
+individual_df = filtered_df[individual_columns].copy()
 individual_df['Source'] = 'Individual'
 
 # Create dataframe for spouse's address, rename columns to match individual_df, and add a Source column
-spouse_df = filtered_df[['CnBio_ID', 'CnBio_No_Valid_Addresses', ...]]
-spouse_df.columns = individual_df.columns
+spouse_columns = [
+    'CnBio_ID', 'CnBio_No_Valid_Addresses', 'CnSpAdrPrf_Addrline1', 
+    'CnSpAdrPrf_City', 'CnSpAdrPrf_State', 'CnSpAdrPrf_ZIP',
+    'CnSpAdrPrf_Type', 'CnSpAdrPrf_Preferred', 'CnSpAdrPrf_DateAdded',
+    'CnSpAdrPrf_DateLastChanged', 'CnSpAdrPrf_Type2', 'CnSpAdrPrf_Indicator', 
+    'CnSpAdrPrf_Import_ID'
+]
+spouse_df = filtered_df[spouse_columns].copy()
+spouse_df.columns = individual_columns
 spouse_df['Source'] = 'Spouse'
+
 
 # Concatenate the two dataframes
 combined_df = pd.concat([individual_df, spouse_df])
