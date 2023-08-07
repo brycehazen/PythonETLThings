@@ -259,7 +259,7 @@ for file in files:
     df[['CnAdrSal_Addressee', 'CnAdrSal_Salutation']] = df.apply(concate_add_sal, axis=1)
 
 
-    # list of columns_to_drop 
+    # list of columns_to_drop I stopped droppping columns and decided to do that manually after this runs to better trouble shoot any issues.
     #columns_to_drop = ['CnAdrPrf_Type', 'CnAdrPrf_Sndmailtthisaddrss', 'CnSpSpBio_Anonymous', 'CnBio_Gender', 'CnSpSpBio_Gender', 
                        #'CnSpSpBio_Inactive', 'CnSpSpBio_Deceased',   'CnSpSpBio_Marital_status', 'CnBio_Marital_status']
     
