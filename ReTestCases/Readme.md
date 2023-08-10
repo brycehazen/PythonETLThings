@@ -16,8 +16,8 @@ The `RETestCases v8.py` script is a data processing tool designed to cleanse and
 - **Data Processing**:
   - The `process()` function takes in a CSV file and two directory paths creating a folder that is named after the csv and performs the following tasks:
     * Reads the data from the CSV.
-    * Conditionally modifies titles and associated gender values.
-    * (Note: Further functionalities might be present but are not captured in the initial segment provided.)
+    * Preforms some corrections to titles
+    * Preforms several test checking for data anomolies. 
 
 ## Usage
 
