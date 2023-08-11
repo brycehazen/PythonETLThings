@@ -23,7 +23,7 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     if 'Notes' not in data.columns:
       data["Notes"] = " "
 
-    # change title based off Gender - This has been approved by the dios despite not knowing if it's title or gender that's correct. 
+    # Fixing titles- 
     data.loc[data['Titl1'].eq('Mr'), 'Titl1'] = 'Mr.'
     data.loc[data['Titl1'].eq('Mrs'), 'Titl1'] = 'Mrs.'
     data.loc[data['Titl1'].eq('Ms'), 'Titl1'] = 'Ms.'
@@ -44,7 +44,7 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     data.loc[data['SRTitl1'].eq('COL'), 'SRTitl1'] = 'Col.'
 
 
-    # change title based off Gender
+    # change title based off Gender This has been approved by the dioIT despite not knowing if it's title or gender that's correct. 
     data.loc[data['Titl1'].eq('Mr.'), 'Gender'] = 'Male'
     data.loc[data['Titl1'].eq('Mrs.'), 'Gender'] = 'Female'
     data.loc[data['Titl1'].eq('Ms.'), 'Gender'] = 'Female'
@@ -53,6 +53,19 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     data.loc[data['SRTitl1'].eq('Mrs.'), 'SRGender'] = 'Female'
     data.loc[data['SRTitl1'].eq('Ms.'), 'SRGender'] = 'Female'
     data.loc[data['SRTitl1'].eq('Miss'), 'SRGender'] = 'Female'
+
+    # change Gender bases off title
+    #Gender is male, title is blank, then change title to Mr.
+    data.loc[(data['Gender'].eq('Male')) & (data['Titl1'] == ''), 'Titl1'] = 'Mr.'
+    # Gender is Female, title blank, SRlast name is not the same as Last name, then changed title = Ms.
+    data.loc[(data['Gender'].eq('Female')) & (data['Titl1'] == '') & (data['SRLastName'] != data['LastName']), 'Titl1'] = 'Ms.'
+    # Gender is Female, title blank, SRlastname and last name are the same, then changed title = Mrs.
+    data.loc[(data['Gender'].eq('Female')) & (data['Titl1'] == '') & (data['SRLastName'] == data['LastName']), 'Titl1'] = 'Mrs.'
+    # SRGender is female, SRtitle is one of 'Ms.', 'Miss', 'Mrs.', Gender is unknown, then changed title and gender to Mr. Male 
+    data.loc[(data['SRGender'] == 'Female') & (data['SRtitl1'].isin(['Ms.', 'Miss', 'Mrs.'])) & (data['Gender'] == 'Unknown'), ['Gender', 'Titl1']] = ['Male', 'Mr.']
+    # SRGender is unknown, gender is male, title is Mr., SRlastname is same as Last name, SRtitle is blank, then change SRtitle and SRGender to Mrs. Female
+    data.loc[(data['SRGender'] == 'Unknown') & (data['Gender'] == 'Male') & (data['titl1'] == 'Mr.') & (data['SRLastName'] == data['LastName']) & (data['SRtitl1'] == ''), ['SRtitl1', 'SRGender']] = ['Mrs.', 'Female']
+
 
     # Change ConsCode to long format to fit Raiser's Edge Import
     data.loc[data['ConsCode'].eq('1-10'), 'ConsCode'] = 'St. Hubert of the Forest Mission, Astor'
