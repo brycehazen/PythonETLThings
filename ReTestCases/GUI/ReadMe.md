@@ -12,9 +12,9 @@ First, install PyInstaller using pip:
 
 #### 2. **Run PyInstaller:**
 
-Navigate to the directory containing your script (`file_processor_gui.py`) in your terminal or command prompt, then execute the following command:
+Navigate to the directory containing your script (`RETestCase_with_GUI.py`) in your terminal or command prompt, then execute the following command to compile into an exe:
 
-    pyinstaller --onefile --windowed file_processor_gui.py
+    pyinstaller --onefile RETestCase_with_GUI.py
 
 **Explanation of Parameters**:
 
