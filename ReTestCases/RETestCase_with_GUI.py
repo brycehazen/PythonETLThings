@@ -1,3 +1,5 @@
+import tkinter as tk
+from tkinter import filedialog
 from pathlib import Path
 import pandas as pd 
 import numpy as np
@@ -12,9 +14,7 @@ rawdata_csv = 'RawParishData.csv'
 def get_root() -> Path:
     return Path(__file__).resolve().parent
 
-
 def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
-    
     data = pd.read_csv(csv_file, encoding='latin-1')
     
     data.drop(data.columns[[38]], axis=1)
@@ -851,20 +851,19 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     rawdata.to_csv(out_dir / rawdata_csv, index=False)
     
 # This names the folder that holds all files after the parish. It will sort files that the parish uses and that Raiser's Edge uses
-def main(base_dir: Path) -> None:
 
-    print(f'Processing files in {base_dir}: \n')
+def main(input_dir: Path, output_dir: Path) -> None:
+    print(f'Processing files in {input_dir}: \n')
 
     n_process = 0
-    for csv_file in base_dir.glob('*.csv'):
-        
-        # ex. csv_file = "/users/path/my_file.csv"
+    for csv_file in input_dir.glob('*.csv'):
+                # ex. csv_file = "/users/path/my_file.csv"
         
         name: str = csv_file.stem   # name = "my_file"
         reimportfiles: str = 'REImportFiles'
         
-        output_dir: Path = base_dir / name  # output_dir = "/users/path/my_file"
-        reout_dir: Path = base_dir / name / output_dir / reimportfiles
+        output_dir: Path = output_dir / name  # output_dir = "/users/path/my_file"
+        reout_dir: Path = input_dir / name / output_dir / reimportfiles
 
         print(f'Creating directory "{output_dir}"')
         Path.mkdir(output_dir, exist_ok=True)
@@ -880,6 +879,49 @@ def main(base_dir: Path) -> None:
 
     print(f'\nProcessed {n_process} files')
 
+def select_input_directory():
+    input_dir = filedialog.askdirectory()
+    input_entry.delete(0, tk.END)
+    input_entry.insert(0, input_dir)
+
+def select_output_directory():
+    output_dir = filedialog.askdirectory()
+    output_entry.delete(0, tk.END)
+    output_entry.insert(0, output_dir)
+
+def start_processing():
+    input_dir = Path(input_entry.get())
+    output_dir = Path(output_entry.get())
+    
+    print(f'Starting processing with input directory: {input_dir} and output directory: {output_dir}')
+    
+    main(input_dir, output_dir)
+
 if __name__ == '__main__':
-    root = get_root()  # root = "users/path"
-    main(base_dir=root)
+    root = get_root()
+    gui_root = tk.Tk()
+    gui_root.geometry("1000x120")  # Adjust window dimensions
+    gui_root.title("RE Test Cases v9")
+
+    input_label = tk.Label(gui_root, text="Input Directory:")
+    input_label.grid(row=0, column=0, padx = 5, pady = 5, sticky="w")
+    
+    input_entry = tk.Entry(gui_root, width=80, font=("Helvetica", 12))  # Increase width and adjust font
+    input_entry.grid(row=0, column=1, padx=5, pady = 5)
+    
+    input_button = tk.Button(gui_root, text="Select Input Directory", command=select_input_directory)
+    input_button.grid(row=0, column=2, padx = 5, pady = 5)
+
+    output_label = tk.Label(gui_root, text="Output Directory:")
+    output_label.grid(row=1, column=0, padx = 5, pady = 5, sticky="w")
+    
+    output_entry = tk.Entry(gui_root, width=80, font=("Helvetica", 12))  # Increase width and adjust font
+    output_entry.grid(row=1, column=1, padx = 5, pady = 5)
+    
+    output_button = tk.Button(gui_root, text="Select Output Directory", command=select_output_directory)
+    output_button.grid(row=1, column=2, padx = 5, pady = 5)
+
+    process_button = tk.Button(gui_root, text="Process CSVs", command=start_processing, font=("Helvetica", 12), width=20)  # Increase font size
+    process_button.grid(row=2, column=0, columnspan=3, padx = 5, pady = 10)
+
+    gui_root.mainloop()
