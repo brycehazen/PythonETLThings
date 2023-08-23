@@ -479,16 +479,17 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
 
     # Dataframe that are new containing *
     new = passed[passed['ConsID'].str.contains ("*", regex = False)]
-    data = passed[passed['ConsID'].str.contains ("*", regex = False)]
 
-
-    # Drop Columns for importOmatic file 
-    impomatic = data.drop(columns = ['KeyInd', 'ConsCodeImpID', 'Nickname', 'Deceased', 
-    'DeceasedDate', 'Inactive', 'SRSuff2', 'SRNickname', 'SRDeceased', 'SRDeceasedDate','SRInactive', 
-    'PrimAddText', 'PrimSalText', 'AddrImpID', 'AddrType', 'AddrRegion', 'AddrSeasonal', 'AddrSeasFrom', 
-    'AddrSeasTo', 'PhoneAddrImpID','PhoneImpID', 'PhoneType','DateTo', 'NameChanged', 'StreetChanged', 
-    'MailingChanged', 'AltChanged', 'Test Case Failed', 'Notes']) #, 'AddrImpID.1', 'PhoneAddrImpID.1', 'PhoneImpID.1'])
-
+    # # Drop Columns for importOmatic file 
+    # impomatic = new.drop(columns = ['KeyInd', 'ConsCodeImpID', 'Nickname', 'Deceased', 
+    # 'DeceasedDate', 'Inactive', 'SRSuff2', 'SRNickname', 'SRDeceased', 'SRDeceasedDate','SRInactive', 
+    # 'PrimAddText', 'PrimSalText', 'AddrImpID', 'AddrType', 'AddrRegion', 'AddrSeasonal', 'AddrSeasFrom', 
+    # 'AddrSeasTo', 'PhoneAddrImpID','PhoneImpID', 'PhoneType','DateTo', 'NameChanged', 'StreetChanged', 
+    # 'MailingChanged', 'AltChanged', 'Test Case Failed', 'Notes']) #, 'AddrImpID.1', 'PhoneAddrImpID.1', 'PhoneImpID.1'])
+    columns_to_drop = ['KeyInd', 'ConsCodeImpID', 'Nickname', 'Deceased', 'DeceasedDate', 'Inactive', 'SRSuff2', 'SRNickname', 'SRDeceased', 'SRDeceasedDate','SRInactive', 'PrimAddText', 'PrimSalText', 'AddrImpID', 'AddrType', 'AddrRegion', 'AddrSeasonal', 'AddrSeasFrom', 'AddrSeasTo', 'PhoneAddrImpID','PhoneImpID', 'PhoneType','DateTo', 'NameChanged', 'StreetChanged', 'MailingChanged', 'AltChanged', 'Test Case Failed', 'Notes']
+    # Only drop columns that are present in the DataFrame
+    columns_to_drop = [col for col in columns_to_drop if col in new.columns]
+    impomatic = new.drop(columns=columns_to_drop)
     # Creates spouse column and fills in with Yes if 
     impomatic.insert(loc = 15, column='Spouse', value = '')
     impomatic.loc[(impomatic['SRLastName'] != ''),'Spouse'] = 'Yes'
