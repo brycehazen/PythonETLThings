@@ -61,8 +61,15 @@ for csv_file in csv_files:
 
     # Create a new CSV file with only 'CnBio_ID', 'ImportID', and the filled-in address details
     filled_addresses_final = blank_addresses[['CnBio_ID', 'CnAdrAll_1_01_Import_ID', 'CnAdrAll_1_01_Addrline1', 'CnAdrAll_1_01_City', 'CnAdrAll_1_01_State', 'CnAdrAll_1_01_ZIP']]
-    filled_addresses_final.columns = ['CnBio_ID', 'ImportID', 'Filled_Address', 'Filled_City', 'Filled_State', 'Filled_ZIP']
-    filled_addresses_final = filled_addresses_final.dropna(subset=['Filled_Address'])
+    filled_addresses_final.columns = ['ConsID', 'AddImportID', 'AddLine1', 'City', 'State', 'Zip']
+    filled_addresses_final = filled_addresses_final.dropna(subset=['AddLine1'])
+
+    # Save to CSV
+    output_file = os.path.splitext(csv_file)[0] + '_output.csv'
+    filled_addresses_final.to_csv(output_file, index=False)
+
+    print(f'Processed {csv_file} and saved output to {output_file}')
+
 
     # Save to CSV
     output_file = os.path.splitext(csv_file)[0] + '_output.csv'
