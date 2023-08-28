@@ -1,13 +1,9 @@
 import pandas as pd
 from datetime import datetime
+import os
 
-# Define the get_best_address_details function
+# Define the function to get the best address details for a single record
 def get_best_address_details(record):
-    """
-    This function takes a single record and returns the best address details (address, city, state, zip) for that record.
-    It checks for a spouse's address first, and if there is no spouse, it uses the most 
-    recently changed non-blank address.
-    """
     # Initialize variables to store best address details
     best_address_details = {
         'Best_Address': None,
@@ -44,24 +40,32 @@ def get_best_address_details(record):
                 
     return best_address_details
 
-# Load the full dataset
-full_data = pd.read_csv('input/file.csv')
+# Get list of all CSV files in the current directory
+csv_files = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.csv')]
 
-# Create a dataframe 'blank_addresses' with only the rows where the address is blank and 'Preferred' is 'Yes'
-blank_addresses = full_data[full_data['CnAdrAll_1_01_Addrline1'].isna() & (full_data['CnAdrAll_1_01_Preferred'] == 'Yes')].copy()
+# Process each CSV file
+for csv_file in csv_files:
+    # Load the full dataset
+    full_data = pd.read_csv(csv_file)
 
-# For each row in 'blank_addresses', find the best address to fill in the blank from the corresponding record in 'full_data'
-for index, row in blank_addresses.iterrows():
-    best_address_details = get_best_address_details(full_data.loc[index])
-    blank_addresses.loc[index, 'CnAdrAll_1_01_Addrline1'] = best_address_details['Best_Address']
-    blank_addresses.loc[index, 'CnAdrAll_1_01_City'] = best_address_details['Best_City']
-    blank_addresses.loc[index, 'CnAdrAll_1_01_State'] = best_address_details['Best_State']
-    blank_addresses.loc[index, 'CnAdrAll_1_01_ZIP'] = best_address_details['Best_ZIP']
+    # Create a dataframe 'blank_addresses' with only the rows where the address is blank and 'Preferred' is 'Yes'
+    blank_addresses = full_data[full_data['CnAdrAll_1_01_Addrline1'].isna() & (full_data['CnAdrAll_1_01_Preferred'] == 'Yes')].copy()
 
-# Create a new CSV file with only 'CnBio_ID', 'ImportID', and the filled-in address details
-filled_addresses_final = blank_addresses[['CnBio_ID', 'CnAdrAll_1_01_Import_ID', 'CnAdrAll_1_01_Addrline1', 'CnAdrAll_1_01_City', 'CnAdrAll_1_01_State', 'CnAdrAll_1_01_ZIP']]
-filled_addresses_final.columns = ['CnBio_ID', 'ImportID', 'Filled_Address', 'Filled_City', 'Filled_State', 'Filled_ZIP']
-filled_addresses_final = filled_addresses_final.dropna(subset=['Filled_Address'])
+    # For each row in 'blank_addresses', find the best address to fill in the blank from the corresponding record in 'full_data'
+    for index, row in blank_addresses.iterrows():
+        best_address_details = get_best_address_details(full_data.loc[index])
+        blank_addresses.loc[index, 'CnAdrAll_1_01_Addrline1'] = best_address_details['Best_Address']
+        blank_addresses.loc[index, 'CnAdrAll_1_01_City'] = best_address_details['Best_City']
+        blank_addresses.loc[index, 'CnAdrAll_1_01_State'] = best_address_details['Best_State']
+        blank_addresses.loc[index, 'CnAdrAll_1_01_ZIP'] = best_address_details['Best_ZIP']
 
-# Save to CSV
-filled_addresses_final.to_csv('output/file.csv', index=False)
+    # Create a new CSV file with only 'CnBio_ID', 'ImportID', and the filled-in address details
+    filled_addresses_final = blank_addresses[['CnBio_ID', 'CnAdrAll_1_01_Import_ID', 'CnAdrAll_1_01_Addrline1', 'CnAdrAll_1_01_City', 'CnAdrAll_1_01_State', 'CnAdrAll_1_01_ZIP']]
+    filled_addresses_final.columns = ['CnBio_ID', 'ImportID', 'Filled_Address', 'Filled_City', 'Filled_State', 'Filled_ZIP']
+    filled_addresses_final = filled_addresses_final.dropna(subset=['Filled_Address'])
+
+    # Save to CSV
+    output_file = os.path.splitext(csv_file)[0] + '_output.csv'
+    filled_addresses_final.to_csv(output_file, index=False)
+
+    print(f'Processed {csv_file} and saved output to {output_file}')
