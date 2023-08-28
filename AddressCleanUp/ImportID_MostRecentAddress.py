@@ -1,87 +1,67 @@
-import os
 import pandas as pd
+from datetime import datetime
 
-def update_blank_addresses(row):
-    updated = False  # Flag to indicate if any address was updated
+# Define the get_best_address_details function
+def get_best_address_details(record):
+    """
+    This function takes a single record and returns the best address details (address, city, state, zip) for that record.
+    It checks for a spouse's address first, and if there is no spouse, it uses the most 
+    recently changed non-blank address.
+    """
+    # Initialize variables to store best address details
+    best_address_details = {
+        'Best_Address': None,
+        'Best_City': None,
+        'Best_State': None,
+        'Best_ZIP': None
+    }
     
-    preferred_cols = [col for col in row.index if 'Preferred' in col and row[col] == 'Yes' and pd.isna(row[col.replace('Preferred', 'Addrline1')])]
+    # Check if there is a spouse's address
+    if pd.notna(record['CnSpAdrPrf_Addrline1']):
+        best_address_details['Best_Address'] = record['CnSpAdrPrf_Addrline1']
+        best_address_details['Best_City'] = record['CnSpAdrPrf_City']
+        best_address_details['Best_State'] = record['CnSpAdrPrf_State']
+        best_address_details['Best_ZIP'] = record['CnSpAdrPrf_ZIP']
+        return best_address_details
     
-    for pref_col in preferred_cols:
-        # Identify the address column corresponding to the preferred column
-        address_col = pref_col.replace('Preferred', 'Addrline1')
-        import_id_col = pref_col.replace('Preferred', 'Import_ID')
+    # Find the most recently changed non-blank address
+    most_recent_date = datetime.min
+    for i in range(1, 8):
+        address = record[f'CnAdrAll_1_0{i}_Addrline1']
+        city = record[f'CnAdrAll_1_0{i}_City']
+        state = record[f'CnAdrAll_1_0{i}_State']
+        zip_code = record[f'CnAdrAll_1_0{i}_ZIP']
+        date_last_changed = record[f'CnAdrAll_1_0{i}_DateLastChanged']
         
-        # Store the original Import_ID
-        original_import_id = row[import_id_col]
-        
-        # Check for spouse address
-        if pd.notna(row['CnSpAdrPrf_Addrline1']):
-            spouse_cols = [col.replace('CnSpAdrPrf', pref_col.split('_Preferred')[0]) for col in row.filter(like='CnSpAdrPrf').index]
-            for col in spouse_cols:
-                if 'Import_ID' not in col:
-                    row[col] = row[col.replace(pref_col.split('_Preferred')[0], 'CnSpAdrPrf')]
-            updated = True
-        else:
-            # Check other non-blank addresses by recency
-            address_dates = row.filter(like='CnAdrAll_1_').filter(like='_DateLastChanged').dropna()
-            address_dates = address_dates.apply(pd.to_datetime, errors='coerce').dropna()
-            
-            if not address_dates.empty:
-                most_recent_date_col = address_dates.idxmax()
-                most_recent_prefix = most_recent_date_col.split('_DateLastChanged')[0]
+        if pd.notna(address) and pd.notna(date_last_changed):
+            date_last_changed = datetime.strptime(date_last_changed, '%m/%d/%Y')
+            if date_last_changed > most_recent_date:
+                most_recent_date = date_last_changed
+                best_address_details['Best_Address'] = address
+                best_address_details['Best_City'] = city
+                best_address_details['Best_State'] = state
+                best_address_details['Best_ZIP'] = zip_code
                 
-                for col in row.filter(like=most_recent_prefix).index:
-                    if 'Import_ID' not in col:
-                        target_col = col.replace(most_recent_prefix, pref_col.split('_Preferred')[0])
-                        row[target_col] = row[col]
-                updated = True
-        
-        # Restore the original Import_ID
-        row[import_id_col] = original_import_id
-    return row, updated
+    return best_address_details
 
-def restructure_updated_rows(row):
-    prefixes = [col.split('_Addrline1')[0] for col in row.filter(like='_Addrline1').index]
-    for prefix in prefixes:
-        if pd.notna(row[f'{prefix}_Addrline1']):
-            return {
-                'CnBio_ID': row['CnBio_ID'],
-                'CnBio_No_Valid_Addresses': row['CnBio_No_Valid_Addresses'],
-                'Addrline1': row[f'{prefix}_Addrline1'],
-                'City': row[f'{prefix}_City'],
-                'State': row[f'{prefix}_State'],
-                'ZIP': row[f'{prefix}_ZIP'],
-                'Type': row[f'{prefix}_Type'],
-                'Preferred': row[f'{prefix}_Preferred'],
-                'DateAdded': row[f'{prefix}_DateAdded'],
-                'DateLastChanged': row[f'{prefix}_DateLastChanged'],
-                'Type2': row[f'{prefix}_Type2'],
-                'Indicator': row[f'{prefix}_Indicator'],
-                'Add_Import_ID': row[f'{prefix}_Import_ID']
-            }
-    return {}  # Return an empty dictionary if no valid address was found
+# Load the full dataset
+full_data = pd.read_csv('input/file.csv')
 
-# Get the current directory (the location of the script)
-folder_path = os.getcwd()
+# Create a dataframe 'blank_addresses' with only the rows where the address is blank and 'Preferred' is 'Yes'
+blank_addresses = full_data[full_data['CnAdrAll_1_01_Addrline1'].isna() & (full_data['CnAdrAll_1_01_Preferred'] == 'Yes')].copy()
 
-# Identify all CSV files in the folder
-csv_files = [file for file in os.listdir(folder_path) if file.endswith('.csv') and '_output' not in file]
+# For each row in 'blank_addresses', find the best address to fill in the blank from the corresponding record in 'full_data'
+for index, row in blank_addresses.iterrows():
+    best_address_details = get_best_address_details(full_data.loc[index])
+    blank_addresses.loc[index, 'CnAdrAll_1_01_Addrline1'] = best_address_details['Best_Address']
+    blank_addresses.loc[index, 'CnAdrAll_1_01_City'] = best_address_details['Best_City']
+    blank_addresses.loc[index, 'CnAdrAll_1_01_State'] = best_address_details['Best_State']
+    blank_addresses.loc[index, 'CnAdrAll_1_01_ZIP'] = best_address_details['Best_ZIP']
 
-# Iterate over each CSV file and process it
-for csv_file in csv_files:
-    input_df = pd.read_csv(os.path.join(folder_path, csv_file))
-    
-    # Update blank addresses and keep only the rows that were updated
-    updated_rows = []
-    for _, row in input_df.iterrows():
-        updated_row, was_updated = update_blank_addresses(row)
-        if was_updated:
-            updated_rows.append(restructure_updated_rows(updated_row))
-    
-    # Filter out rows that didn't have their addresses updated before creating the dataframe
-    updated_rows = [row for row in updated_rows if row]
-    updated_df = pd.DataFrame(updated_rows)
-    
-    # Save the processed dataframe to a new CSV file
-    output_filename = os.path.splitext(csv_file)[0] + "_output.csv"
-    updated_df.to_csv(os.path.join(folder_path, output_filename), index=False)
+# Create a new CSV file with only 'CnBio_ID', 'ImportID', and the filled-in address details
+filled_addresses_final = blank_addresses[['CnBio_ID', 'CnAdrAll_1_01_Import_ID', 'CnAdrAll_1_01_Addrline1', 'CnAdrAll_1_01_City', 'CnAdrAll_1_01_State', 'CnAdrAll_1_01_ZIP']]
+filled_addresses_final.columns = ['CnBio_ID', 'ImportID', 'Filled_Address', 'Filled_City', 'Filled_State', 'Filled_ZIP']
+filled_addresses_final = filled_addresses_final.dropna(subset=['Filled_Address'])
+
+# Save to CSV
+filled_addresses_final.to_csv('output/file.csv', index=False)
