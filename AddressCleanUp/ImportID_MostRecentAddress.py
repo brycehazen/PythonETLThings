@@ -1,78 +1,68 @@
 import pandas as pd
-from datetime import datetime
+import numpy as np
 import os
 
-# Define the function to get the best address details for a single record
-def get_best_address_details(record):
-    # Initialize variables to store best address details
-    best_address_details = {
-        'Best_Address': None,
-        'Best_City': None,
-        'Best_State': None,
-        'Best_ZIP': None
-    }
-    
-    # Check if there is a spouse's address
-    if pd.notna(record['CnSpAdrPrf_Addrline1']):
-        best_address_details['Best_Address'] = record['CnSpAdrPrf_Addrline1']
-        best_address_details['Best_City'] = record['CnSpAdrPrf_City']
-        best_address_details['Best_State'] = record['CnSpAdrPrf_State']
-        best_address_details['Best_ZIP'] = record['CnSpAdrPrf_ZIP']
-        return best_address_details
-    
-    # Find the most recently changed non-blank address
-    most_recent_date = datetime.min
-    for i in range(1, 8):
-        address = record[f'CnAdrAll_1_0{i}_Addrline1']
-        city = record[f'CnAdrAll_1_0{i}_City']
-        state = record[f'CnAdrAll_1_0{i}_State']
-        zip_code = record[f'CnAdrAll_1_0{i}_ZIP']
-        date_last_changed = record[f'CnAdrAll_1_0{i}_DateLastChanged']
-        
-        if pd.notna(address) and pd.notna(date_last_changed):
-            date_last_changed = datetime.strptime(date_last_changed, '%m/%d/%Y')
-            if date_last_changed > most_recent_date:
-                most_recent_date = date_last_changed
-                best_address_details['Best_Address'] = address
-                best_address_details['Best_City'] = city
-                best_address_details['Best_State'] = state
-                best_address_details['Best_ZIP'] = zip_code
-                
-    return best_address_details
+# Get a list of all CSV files in the current directory
+csv_files = [file for file in os.listdir() if file.endswith('.csv')]
 
-# Get list of all CSV files in the current directory
-csv_files = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.csv')]
+for file in csv_files:
+    # Load the CSV
+    data = pd.read_csv(file)
 
-# Process each CSV file
-for csv_file in csv_files:
-    # Load the full dataset
-    full_data = pd.read_csv(csv_file)
+    # Load the CSV
+    data = pd.read_csv('path_to_input_file.csv')
 
-    # Create a dataframe 'blank_addresses' with only the rows where the address is blank and 'Preferred' is 'Yes'
-    blank_addresses = full_data[full_data['CnAdrAll_1_01_Addrline1'].isna() & (full_data['CnAdrAll_1_01_Preferred'] == 'Yes')].copy()
+    # Iterate over each row and check for blank preferred address
+    for index, row in data.iterrows():
+        for i in range(1, 8):  # There are 7 address iterations
+            prefix = f"CnAdrAll_1_0{i}_"
+            if row[prefix + "Preferred"] == "Yes" and pd.isna(row[prefix + "Addrline1"]):
+                # If spouse address is not blank, use it
+                if not pd.isna(row["CnSpAdrPrf_Addrline1"]):
+                    for col in ["Addrline1", "City", "State", "ZIP"]:
+                        data.at[index, prefix + col] = row["CnSpAdrPrf_" + col]
+                else:
+                    # Find the most recent non-blank address
+                    most_recent_date = pd.Timestamp('1900-01-01')  # start with a very old date
+                    most_recent_address = {}
+                    for j in range(1, 8):
+                        address_prefix = f"CnAdrAll_1_0{j}_"
+                        if not pd.isna(row[address_prefix + "Addrline1"]):
+                            date_added = pd.Timestamp(row[address_prefix + "DateAdded"])
+                            if date_added > most_recent_date:
+                                most_recent_date = date_added
+                                for col in ["Addrline1", "City", "State", "ZIP"]:
+                                    most_recent_address[col] = row[address_prefix + col]
+                    # Update blank preferred address with most recent non-blank address
+                    for col in ["Addrline1", "City", "State", "ZIP"]:
+                        data.at[index, prefix + col] = most_recent_address.get(col, np.nan)
 
-    # For each row in 'blank_addresses', find the best address to fill in the blank from the corresponding record in 'full_data'
-    for index, row in blank_addresses.iterrows():
-        best_address_details = get_best_address_details(full_data.loc[index])
-        blank_addresses.loc[index, 'CnAdrAll_1_01_Addrline1'] = best_address_details['Best_Address']
-        blank_addresses.loc[index, 'CnAdrAll_1_01_City'] = best_address_details['Best_City']
-        blank_addresses.loc[index, 'CnAdrAll_1_01_State'] = best_address_details['Best_State']
-        blank_addresses.loc[index, 'CnAdrAll_1_01_ZIP'] = best_address_details['Best_ZIP']
+    # Filter the data for rows where the preferred address was previously blank and has now been filled
+    filtered_data = data[data['CnBio_No_Valid_Addresses'] == 'Yes']
 
-    # Create a new CSV file with only 'CnBio_ID', 'ImportID', and the filled-in address details
-    filled_addresses_final = blank_addresses[['CnBio_ID', 'CnAdrAll_1_01_Import_ID', 'CnAdrAll_1_01_Addrline1', 'CnAdrAll_1_01_City', 'CnAdrAll_1_01_State', 'CnAdrAll_1_01_ZIP']]
-    filled_addresses_final.columns = ['ConsID', 'AddImportID', 'AddLine1', 'City', 'State', 'Zip']
-    filled_addresses_final = filled_addresses_final.dropna(subset=['AddLine1'])
+    # Create a simplified dataframe with the required columns
+    simplified_data = pd.DataFrame({
+        'CnBio_ID': filtered_data['CnBio_ID'],
+        'CnBio_No_Valid_Addresses': filtered_data['CnBio_No_Valid_Addresses'],
+        'CnAdrAllAddrline1': filtered_data['CnAdrAll_1_01_Addrline1'],
+        'CnAdrAllCity': filtered_data['CnAdrAll_1_01_City'],
+        'CnAdrAllState': filtered_data['CnAdrAll_1_01_State'],
+        'CnAdrAllZIP': filtered_data['CnAdrAll_1_01_ZIP'],
+        'CnAdrAllType': filtered_data['CnAdrAll_1_01_Type'],
+        'CnAdrAllPreferred': filtered_data['CnAdrAll_1_01_Preferred'],
+        'CnAdrAllDateAdded': filtered_data['CnAdrAll_1_01_DateAdded'],
+        'CnAdrAllDateLastChanged': filtered_data['CnAdrAll_1_01_DateLastChanged'],
+        'CnAdrAllType2': filtered_data['CnAdrAll_1_01_Type2'],
+        'CnAdrAllIndicator': filtered_data['CnAdrAll_1_01_Indicator'],
+        'CnAdrAllImport_ID': filtered_data['CnAdrAll_1_01_Import_ID']
+    })
 
-    # Save to CSV
-    output_file = os.path.splitext(csv_file)[0] + '_output.csv'
-    filled_addresses_final.to_csv(output_file, index=False)
-
-    print(f'Processed {csv_file} and saved output to {output_file}')
+    # Save the simplified data to a new CSV file
+    simplified_data.to_csv('path_to_output_file.csv', index=False)
 
 
-    # Save to CSV
-    output_file = os.path.splitext(csv_file)[0] + '_output.csv'
-    filled_addresses_final.to_csv(output_file, index=False)
+    # Save the simplified data to a new CSV file
+    output_file = os.path.splitext(file)[0] + "_processed.csv"
+    simplified_data.to_csv(output_file, index=False)
 
-    print(f'Processed {csv_file} and saved output to {output_file}')
+    print(f"Processed {file} and saved as {output_file}")
