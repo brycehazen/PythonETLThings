@@ -580,11 +580,30 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     redata.loc[(redata['AddrCity'].str.contains(' Fl')),'AddrState'] = 'FL'
     redata.loc[(redata['AddrCity'].str.contains(' FL')),'AddrState'] = 'FL'
     redata.loc[(redata['AddrCity'].str.contains(', Fl')),'AddrState'] = 'FL'
-    
-    # Replaces instacnes where state is in the same cell as city. 
-    redata[['AddrCity', 'State_Holder']] = redata['AddrCity'].str.replace(', ', ' ').str.replace(' ', ', ').str.split(', ', 1, expand = True)
-    redata['AddrState'] = np.where(redata['AddrState'].isna(), redata['State_Holder'], redata['AddrState'])
-    redata = redata.drop(columns = ['State_Holder'])
+
+  # Splits the 'AddrCity' column of redata into city and state parts, and fills NaN values in the 'AddrState' column with the extracted state.  
+    def split_city_state(redata):
+
+        # List of U.S. state abbreviations
+        state_abbreviations = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+                "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
+
+        # Create a regex pattern to match any state abbreviation from the list
+        pattern = r'(?P<City>.*?)(?:,? (?P<State>[A-Z]{2}))?$'
+        pattern = pattern.replace('[A-Z]{2}', '|'.join(state_abbreviations))
+
+        # Extract city and state from the AddrCity column
+        redata[['AddrCity', 'State_Holder']] = redata['AddrCity'].str.extract(pattern)
+
+        # Fill NaN values in the AddrState column with values from the State_Holder column
+        redata['AddrState'] = np.where(redata['AddrState'].isna(), redata['State_Holder'], redata['AddrState'])
+
+        # Drop the temporary State_Holder column
+        redata.drop(columns=['State_Holder'], inplace=True)
+
+        return redata
+        
+    redata = split_city_state(redata)
 
     # Clean addresses in redata
     def normalizeredata(redata):
