@@ -618,215 +618,245 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     redata.loc[(redata['AddrCity'].str.contains(' FL')),'AddrState'] = 'FL'
     redata.loc[(redata['AddrCity'].str.contains(', Fl')),'AddrState'] = 'FL'
     
-    # Replaces instacnes where state is in the same cell as city. 
-    redata[['AddrCity', 'State_Holder']] = redata['AddrCity'].str.replace(', ', ' ').str.replace(' ', ', ').str.split(', ', 1, expand = True)
-    redata['AddrState'] = np.where(redata['AddrState'].isna(), redata['State_Holder'], redata['AddrState'])
-    redata = redata.drop(columns = ['State_Holder'])
+     # Splits the 'AddrCity' column of redata into city and state parts, and fills NaN values in the 'AddrState' column with the extracted state.  
+    def split_city_state(redata):
+
+        # List of U.S. state abbreviations
+        state_abbreviations = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+                "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
+
+        # Create a regex pattern to match any state abbreviation from the list
+        pattern = r'(?P<City>.*?)(?:,? (?P<State>[A-Z]{2}))?$'
+        pattern = pattern.replace('[A-Z]{2}', '|'.join(state_abbreviations))
+
+        # Extract city and state from the AddrCity column
+        redata[['AddrCity', 'State_Holder']] = redata['AddrCity'].str.extract(pattern)
+
+        # Fill NaN values in the AddrState column with values from the State_Holder column
+        redata['AddrState'] = np.where(redata['AddrState'].isna(), redata['State_Holder'], redata['AddrState'])
+
+        # Drop the temporary State_Holder column
+        redata.drop(columns=['State_Holder'], inplace=True)
+
+        return redata
+        
+    redata = split_city_state(redata)
 
     # Clean addresses in redata
     def normalizeredata(redata):
         redata = redata.copy()
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Apartment ','Apt ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Apt\\.','Apt ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('APT','Apt ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('nApt','Apt ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('NApt','Apt ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Avenue','Ave ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ave\\.','Ave ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Boulevard','Blvd ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Blvd.','Blvd ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Building','Bldg ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Bldg\\.','Bldg ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Center','Ctr ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ctr\\.','Ctr ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Circle','Cir ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Cir\\.','Cir ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Court','Ct ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ct\\.','Ct ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Drive','Dr ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Dr\\.','Dr ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('East','E ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('E\\.','E ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Expressway','Expy ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Expy\\.','Expy ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Extension','Ext ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ext\\.','Ext ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Fort','Ft ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ft\\.','Ft ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Freeway','Fwy ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Fwy\\.','Fwy ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Height','Hts ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Hts\\.','Hts ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Highway','Hwy ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Hwy\\.','Hwy ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Island','Is ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Is\\.','Is ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Junction','Jct ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Jct\\.','Jct ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Lane','Ln ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ln\\.','Ln ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Mount','Mt ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Mt\.','Mt ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Mountain','St ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Mt\\.','Mt ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('North','N ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('N\\.','N ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Northeast','NE ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('NE\\.','NE ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Northwest','NW ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('NW\\.','NW',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Parkway','Pky ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Pky\\.','Pky ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Place','Pl ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Pl\\.','Pl ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Post Office','PO ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('PO\\.','PO ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('P\\.O','PO ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('P\\.O\\.','PO ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ridge','Rdg ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Road','Rd ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Rd\\.','Rd ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('ROAD','Rd ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Rural Delivery','RD ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('RD\\.','RD ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Rural Route','RR ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('RR\\.','RR ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Saint','St ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('St\\.','St ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('South','S ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('S\\.','S ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Southeast','SE ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('SE\\.','SE',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Southwest','SW ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('SW\\.','SW ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Spring','Spg ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Spg\\.','Spg ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Springs','Spgs  ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Spg\\.','Spgs ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Square','Sq ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Sq\\.','Sq ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Squares','Sq ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Sq\\.','Sq ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Street','St ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('St\\.','St ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Suite','Ste ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ste\\.','Ste ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Terrace','Ter ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Ter\\.','Ter ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Turnpike','Tpke ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('Tpke\\.','Tpke ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('UNIT.','Unit ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('LOT','Tpke ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('West','W ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('west','W ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace(',',' ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('\\.','',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('-',' ',regex=True)
-        redata['AddrLines'] = redata['AddrLines'].str.replace('\\/n',' ',regex=True)
+        replacements = {
+          r'\bApartment\b': 'Apt',
+          r'\bApt\.\b': 'Apt',
+          r'\bAPT\b': 'Apt',
+          r'\bnApt\b': 'Apt',
+          r'\bNApt\b': 'Apt',
+          r'\bAvenue\b': 'Ave',
+          r'\bAve\.\b': 'Ave',
+          r'\bBoulevard\b': 'Blvd',
+          r'\bBlvd\.\b': 'Blvd',
+          r'\bBuilding\b': 'Bldg',
+          r'\bBldg\.\b': 'Bldg',
+          r'\bCenter\b': 'Ctr',
+          r'\bCtr\.\b': 'Ctr',
+          r'\bCircle\b': 'Cir',
+          r'\bCir\.\b': 'Cir',
+          r'\bCourt\b': 'Ct',
+          r'\bCt\.\b': 'Ct',
+          r'\bDrive\b': 'Dr',
+          r'\bDr\.\b': 'Dr',
+          r'\bEast\b': 'E',
+          r'\bE\.\b': 'E',
+          r'\bExpressway\b': 'Expy',
+          r'\bExpy\.\b': 'Expy',
+          r'\bExtension\b': 'Ext',
+          r'\bExt\.\b': 'Ext',
+          r'\bFort\b': 'Ft',
+          r'\bFt\.\b': 'Ft',
+          r'\bFreeway\b': 'Fwy',
+          r'\bFwy\.\b': 'Fwy',
+          r'\bHeight\b': 'Hts',
+          r'\bHts\.\b': 'Hts',
+          r'\bHighway\b': 'Hwy',
+          r'\bHwy\.\b': 'Hwy',
+          r'\bIsland\b': 'Is',
+          r'\bIs\.\b': 'Is',
+          r'\bJunction\b': 'Jct',
+          r'\bJct\.\b': 'Jct',
+          r'\bLane\b': 'Ln',
+          r'\bLn\.\b': 'Ln',
+          r'\bMount\b': 'Mt',
+          r'\bMt\.\b': 'Mt',
+          r'\bMountain\b': 'Mt',
+          r'\bNorth\b': 'N',
+          r'\bN\.\b': 'N',
+          r'\bNortheast\b': 'NE',
+          r'\bNE\.\b': 'NE',
+          r'\bNorthwest\b': 'NW',
+          r'\bNW\.\b': 'NW',
+          r'\bParkway\b': 'Pky',
+          r'\bPky\.\b': 'Pky',
+          r'\bPlace\b': 'Pl',
+          r'\bPl\.\b': 'Pl',
+          r'\bPost Office\b': 'PO',
+          r'\bPO\.\b': 'PO',
+          r'\bP\.O\b': 'PO',
+          r'\bP\.O\.\b': 'PO',
+          r'\bRidge\b': 'Rdg',
+          r'\bRdg\.\b': 'Rdg',
+          r'\bRoad\b': 'Rd',
+          r'\bRd\.\b': 'Rd',
+          r'\bROAD\b': 'Rd',
+          r'\bRural Delivery\b': 'RD',
+          r'\bRD\.\b': 'RD',
+          r'\bRural Route\b': 'RR',
+          r'\bRR\.\b': 'RR',
+          r'\bSaint\b': 'St',
+          r'\bSt\.\b': 'St',
+          r'\bSouth\b': 'S',
+          r'\bS\.\b': 'S',
+          r'\bSoutheast\b': 'SE',
+          r'\bSE\.\b': 'SE',
+          r'\bSouthwest\b': 'SW',
+          r'\bSW\.\b': 'SW',
+          r'\bSpring\b': 'Spg',
+          r'\bSpg\.\b': 'Spg',
+          r'\bSprings\b': 'Spgs',
+          r'\bSpgs\.\b': 'Spgs',
+          r'\bSquare\b': 'Sq',
+          r'\bSq\.\b': 'Sq',
+          r'\bSquares\b': 'Sq',
+          r'\bStreet\b': 'St',
+          r'\bSuite\b': 'Ste',
+          r'\bSte\.\b': 'Ste',
+          r'\bTerrace\b': 'Ter',
+          r'\bTer\.\b': 'Ter',
+          r'\bTurnpike\b': 'Tpke',
+          r'\bTpke\.\b': 'Tpke',
+          r'\bThroughway\b': 'Trwy',
+          r'\bTrwy\.\b': 'Trwy',
+          r'\bTunnel\b': 'Tunl',
+          r'\bTunl\.\b': 'Tunl',
+          r'\bWest\b': 'W',
+          r'\bW\.\b': 'W',
+          ',': ' ',
+          '\.': '',
+          '-': ' ',
+          '\n': ' '
+        }
+        for pattern, replacement in replacements.items():
+          redata['AddrLines'] = redata['AddrLines'].str.replace(pattern, replacement + ' ', regex=True)
+
         return redata
     renew = normalizeredata(redata)
 
     # Clean addresses in impomatic - tried to do this before parsing out ImportOmatic file, but caused more trouble than was worth. 
     def normalizeimpomatic(impomatic):
         impomatic = impomatic.copy()
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Apartment ','Apt ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Apt\\.','Apt ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('APT','Apt ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('nApt','Apt ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('NApt','Apt ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Avenue','Ave ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ave\\.','Ave ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Boulevard','Blvd ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Blvd.','Blvd ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Building','Bldg ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Bldg\\.','Bldg ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Center','Ctr ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ctr\\.','Ctr ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Circle','Cir ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Cir\\.','Cir ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Court','Ct ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ct\\.','Ct ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Drive','Dr ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Dr\\.','Dr ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('East','E ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('E\\.','E ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Expressway','Expy ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Expy\\.','Expy ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Extension','Ext ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ext\\.','Ext ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Fort','Ft ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ft\\.','Ft ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Freeway','Fwy ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Fwy\\.','Fwy ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Height','Hts ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Hts\\.','Hts ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Highway','Hwy ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Hwy\\.','Hwy ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Island','Is ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Is\\.','Is ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Junction','Jct ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Jct\\.','Jct ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Lane','Ln ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ln\\.','Ln ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Mount','Mt ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Mt\.','Mt ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Mountain','St ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Mt\\.','Mt ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('North','N ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('N\\.','N ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Northeast','NE ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('NE\\.','NE ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Northwest','NW ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('NW\\.','NW',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Parkway','Pky ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Pky\\.','Pky ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Place','Pl ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Pl\\.','Pl ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Post Office','PO ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('PO\\.','PO ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('P\\.O','PO ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('P\\.O\\.','PO ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ridge','Rdg ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Road','Rd ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Rd\\.','Rd ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('ROAD','Rd ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Rural Delivery','RD ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('RD\\.','RD ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Rural Route','RR ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('RR\\.','RR ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Saint','St ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('St\\.','St ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('South','S ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('S\\.','S ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Southeast','SE ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('SE\\.','SE',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Southwest','SW ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('SW\\.','SW ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Spring','Spg ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Spg\\.','Spg ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Springs','Spgs  ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Spg\\.','Spgs ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Square','Sq ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Sq\\.','Sq ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Squares','Sq ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Sq\\.','Sq ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Street','St ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('St\\.','St ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Suite','Ste ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ste\\.','Ste ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Terrace','Ter ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Ter\\.','Ter ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Turnpike','Tpke ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('Tpke\\.','Tpke ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('UNIT.','Unit ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('LOT','Tpke ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('West','W ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('west','W ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace(',',' ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('\\.','',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('-',' ',regex=True)
-        impomatic['AddrLines'] = impomatic['AddrLines'].str.replace('\\/n',' ',regex=True)
+        replacements = {
+          r'\bApartment\b': 'Apt',
+          r'\bApt\.\b': 'Apt',
+          r'\bAPT\b': 'Apt',
+          r'\bnApt\b': 'Apt',
+          r'\bNApt\b': 'Apt',
+          r'\bAvenue\b': 'Ave',
+          r'\bAve\.\b': 'Ave',
+          r'\bBoulevard\b': 'Blvd',
+          r'\bBlvd\.\b': 'Blvd',
+          r'\bBuilding\b': 'Bldg',
+          r'\bBldg\.\b': 'Bldg',
+          r'\bCenter\b': 'Ctr',
+          r'\bCtr\.\b': 'Ctr',
+          r'\bCircle\b': 'Cir',
+          r'\bCir\.\b': 'Cir',
+          r'\bCourt\b': 'Ct',
+          r'\bCt\.\b': 'Ct',
+          r'\bDrive\b': 'Dr',
+          r'\bDr\.\b': 'Dr',
+          r'\bEast\b': 'E',
+          r'\bE\.\b': 'E',
+          r'\bExpressway\b': 'Expy',
+          r'\bExpy\.\b': 'Expy',
+          r'\bExtension\b': 'Ext',
+          r'\bExt\.\b': 'Ext',
+          r'\bFort\b': 'Ft',
+          r'\bFt\.\b': 'Ft',
+          r'\bFreeway\b': 'Fwy',
+          r'\bFwy\.\b': 'Fwy',
+          r'\bHeight\b': 'Hts',
+          r'\bHts\.\b': 'Hts',
+          r'\bHighway\b': 'Hwy',
+          r'\bHwy\.\b': 'Hwy',
+          r'\bIsland\b': 'Is',
+          r'\bIs\.\b': 'Is',
+          r'\bJunction\b': 'Jct',
+          r'\bJct\.\b': 'Jct',
+          r'\bLane\b': 'Ln',
+          r'\bLn\.\b': 'Ln',
+          r'\bMount\b': 'Mt',
+          r'\bMt\.\b': 'Mt',
+          r'\bMountain\b': 'Mt',
+          r'\bNorth\b': 'N',
+          r'\bN\.\b': 'N',
+          r'\bNortheast\b': 'NE',
+          r'\bNE\.\b': 'NE',
+          r'\bNorthwest\b': 'NW',
+          r'\bNW\.\b': 'NW',
+          r'\bParkway\b': 'Pky',
+          r'\bPky\.\b': 'Pky',
+          r'\bPlace\b': 'Pl',
+          r'\bPl\.\b': 'Pl',
+          r'\bPost Office\b': 'PO',
+          r'\bPO\.\b': 'PO',
+          r'\bP\.O\b': 'PO',
+          r'\bP\.O\.\b': 'PO',
+          r'\bRidge\b': 'Rdg',
+          r'\bRdg\.\b': 'Rdg',
+          r'\bRoad\b': 'Rd',
+          r'\bRd\.\b': 'Rd',
+          r'\bROAD\b': 'Rd',
+          r'\bRural Delivery\b': 'RD',
+          r'\bRD\.\b': 'RD',
+          r'\bRural Route\b': 'RR',
+          r'\bRR\.\b': 'RR',
+          r'\bSaint\b': 'St',
+          r'\bSt\.\b': 'St',
+          r'\bSouth\b': 'S',
+          r'\bS\.\b': 'S',
+          r'\bSoutheast\b': 'SE',
+          r'\bSE\.\b': 'SE',
+          r'\bSouthwest\b': 'SW',
+          r'\bSW\.\b': 'SW',
+          r'\bSpring\b': 'Spg',
+          r'\bSpg\.\b': 'Spg',
+          r'\bSprings\b': 'Spgs',
+          r'\bSpgs\.\b': 'Spgs',
+          r'\bSquare\b': 'Sq',
+          r'\bSq\.\b': 'Sq',
+          r'\bSquares\b': 'Sq',
+          r'\bStreet\b': 'St',
+          r'\bSuite\b': 'Ste',
+          r'\bSte\.\b': 'Ste',
+          r'\bTerrace\b': 'Ter',
+          r'\bTer\.\b': 'Ter',
+          r'\bTurnpike\b': 'Tpke',
+          r'\bTpke\.\b': 'Tpke',
+          r'\bThroughway\b': 'Trwy',
+          r'\bTrwy\.\b': 'Trwy',
+          r'\bTunnel\b': 'Tunl',
+          r'\bTunl\.\b': 'Tunl',
+          r'\bWest\b': 'W',
+          r'\bW\.\b': 'W',
+          ',': ' ',
+          '\.': '',
+          '-': ' ',
+          '\n': ' '
+        }
+        for pattern, replacement in replacements.items():
+          impomatic['AddrLines'] = impomatic['AddrLines'].str.replace(pattern, replacement + ' ', regex=True)
+
         return impomatic
+
     newimpomatic = normalizeimpomatic(impomatic)
     
     # Reorder columns with 'Test Case Failed' at the start
