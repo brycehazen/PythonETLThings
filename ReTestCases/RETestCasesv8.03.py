@@ -12,7 +12,6 @@ rawdata_csv = 'RawParishData.csv'
 def get_root() -> Path:
     return Path(__file__).resolve().parent
 
-
 def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     
     data = pd.read_csv(csv_file, encoding='latin-1')
@@ -22,37 +21,6 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     rawdata = pd.read_csv(csv_file, encoding='latin-1')
     if 'Notes' not in data.columns:
       data["Notes"] = " "
-
-    # change title based off Gender - This has been approved by the dios despite not knowing if it's title or gender that's correct. 
-    data.loc[data['Titl1'].eq('Mr'), 'Titl1'] = 'Mr.'
-    data.loc[data['Titl1'].eq('Mrs'), 'Titl1'] = 'Mrs.'
-    data.loc[data['Titl1'].eq('Ms'), 'Titl1'] = 'Ms.'
-    data.loc[data['Titl1'].eq('Dr'), 'Titl1'] = 'Dr.'
-    data.loc[data['SRTitl1'].eq('Mr'), 'SRTitl1'] = 'Mr.'
-    data.loc[data['SRTitl1'].eq('Mrs'), 'SRTitl1'] = 'Mrs.'
-    data.loc[data['SRTitl1'].eq('Ms'), 'SRTitl1'] = 'Ms.'
-    data.loc[data['SRTitl1'].eq('Dr'), 'SRTitl1'] = 'Dr.'
-    data.loc[data['Titl1'].eq('Rev.') , 'Titl1'] = 'Reverend'
-    data.loc[data['Titl1'].eq('Very Rev.') , 'Titl1'] = 'Very Reverend'
-    data.loc[data['Titl1'].eq('LTC') , 'Titl1'] = 'Lt. Col.'
-    data.loc[data['Titl1'].eq('Cpt.') , 'Titl1'] = 'Capt.'
-    data.loc[data['Titl1'].eq('Mgen') , 'Titl1'] = 'Maj. Gen.'
-    data.loc[data['Titl1'].eq('Lt Gen') , 'Titl1'] = 'Lt. Gen.'
-    data.loc[data['Titl1'].eq('Mr. & Mrs.') , 'Titl1'] = 'Mr.'
-    data.loc[data['SRTitl1'].eq('Mr. & Mrs.'), 'SRTitl1'] = 'Mrs.'
-    data.loc[data['SRTitl1'].eq('Maj Gen'), 'SRTitl1'] = 'Maj. Gen.'
-    data.loc[data['SRTitl1'].eq('COL'), 'SRTitl1'] = 'Col.'
-
-
-    # change title based off Gender
-    data.loc[data['Titl1'].eq('Mr.'), 'Gender'] = 'Male'
-    data.loc[data['Titl1'].eq('Mrs.'), 'Gender'] = 'Female'
-    data.loc[data['Titl1'].eq('Ms.'), 'Gender'] = 'Female'
-    data.loc[data['Titl1'].eq('Miss'), 'Gender'] = 'Female'
-    data.loc[data['SRTitl1'].eq('Mr.'), 'SRGender'] = 'Male'
-    data.loc[data['SRTitl1'].eq('Mrs.'), 'SRGender'] = 'Female'
-    data.loc[data['SRTitl1'].eq('Ms.'), 'SRGender'] = 'Female'
-    data.loc[data['SRTitl1'].eq('Miss'), 'SRGender'] = 'Female'
 
     # Change ConsCode to long format to fit Raiser's Edge Import
     data.loc[data['ConsCode'].eq('1-10'), 'ConsCode'] = 'St. Hubert of the Forest Mission, Astor'
@@ -243,16 +211,68 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     data.loc[data['ConsCode'].eq(' 5-74'), 'ConsCode'] = 'Our Lady of Hope Catholic Church, Port Orange'
 
     # change MrtlStat based off Gender
-    data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ', na=False)) & (data['LastName'] == data['SRLastName']),'MrtlStat'] = 'Married'
-    data.loc[(data['MrtlStat'].str.contains('Religion|Civilly', na=False)),'MrtlStat'] = 'Married'
-    data.loc[(data['MrtlStat'].str.contains('Never', na=False)),'MrtlStat', ] = 'Single'
-    data.loc[(data['MrtlStat'].str.contains('Unknown', na=False)),'MrtlStat'] = ''
-    data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ')),'MrtlStat'] = 'Married'
-
     # Create array to track failed cases.
     data['Test Case Failed']= ''
     data = data.replace(np.nan,'')
     data.insert(0, 'ID', range(0, len(data)))
+    
+    # Change blank Gender on title
+    AllRETitl1s = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deacon', 'Judge', 
+                'Lt. Col.', 'Col. Ret.', 'Major', 'Capt.', 'Maj. Gen.', 'Family of', 'Senator', 'Reverend', 
+                'Lt.', 'Cmdr.', 'Msgt.', 'Sister', 'Drs.', 'Master', 'Sgt. Maj.', 'SMSgt.', 'Prof.', 'Lt. Col. Ret.', 'Rev. Dr.', 
+                'Father', 'Brother', 'Bishop', 'Gen.', 'Admiral', 'Very Reverend', 'MMC', 'Monsignor', '1st Lt.', 'Reverend Monsignor', 
+                'Maj.', 'Most Reverend', 'Bishop Emeritus','Mrs.', 'Mr.', 'Ms.', 'Miss','Sr.', 'Family of']
+    # Fixing Titles: 
+    data.loc[data['Titl1'].eq('Mr'), 'Titl1'] = 'Mr.'
+    data.loc[data['Titl1'].eq('Mrs'), 'Titl1'] = 'Mrs.'
+    data.loc[data['Titl1'].eq('Ms'), 'Titl1'] = 'Ms.'
+    data.loc[data['Titl1'].eq('Dr'), 'Titl1'] = 'Dr.'
+    data.loc[data['SRTitl1'].eq('Mr'), 'SRTitl1'] = 'Mr.'
+    data.loc[data['SRTitl1'].eq('Mrs'), 'SRTitl1'] = 'Mrs.'
+    data.loc[data['SRTitl1'].eq('Ms'), 'SRTitl1'] = 'Ms.'
+    data.loc[data['SRTitl1'].eq('Dr'), 'SRTitl1'] = 'Dr.'
+    data.loc[data['Titl1'].eq('Rev.') , 'Titl1'] = 'Reverend'
+    data.loc[data['Titl1'].eq('Very Rev.') , 'Titl1'] = 'Very Reverend'
+    data.loc[data['Titl1'].eq('LTC') , 'Titl1'] = 'Lt. Col.'
+    data.loc[data['Titl1'].eq('Cpt.') , 'Titl1'] = 'Capt.'
+    data.loc[data['Titl1'].eq('Mgen') , 'Titl1'] = 'Maj. Gen.'
+    data.loc[data['Titl1'].eq('Lt Gen') , 'Titl1'] = 'Lt. Gen.'
+    data.loc[data['Titl1'].eq('Mr. & Mrs.') , 'Titl1'] = 'Mr.'
+    data.loc[data['SRTitl1'].eq('Mr. & Mrs.'), 'SRTitl1'] = 'Mrs.'
+    data.loc[data['SRTitl1'].eq('Maj Gen'), 'SRTitl1'] = 'Maj. Gen.'
+    data.loc[data['SRTitl1'].eq('COL'), 'SRTitl1'] = 'Col.'
+
+    # Change blank Titles based of Gender
+    data.loc[(data['Titl1'] == '') & (data['Gender'] == 'Male'), 'Titl1'] = 'Mr.'
+    data.loc[(data['Titl1'] == '') & (data['SRLastName'] == 'LastName') & (data['Gender'] == 'Female'), 'Titl1'] = 'Mrs.'
+    data.loc[(data['Titl1'] == '') & (data['SRLastName'] != 'LastName') & (data['Gender'] == 'Female'), 'Titl1'] = 'Ms.'
+    # Change blank SRTitles based of Gender
+    data.loc[(data['SRTitl1'] == '') & (data['SRGender'] == 'Male'), 'SRTitl1'] = 'Mr.'
+    data.loc[(data['SRTitl1'] == '') & (data['SRLastName'] == 'LastName') & (data['SRGender'] == 'Female'), 'SRTitl1'] = 'Mrs.'
+    data.loc[(data['SRTitl1'] == '') & (data['SRLastName'] != 'LastName') & (data['SRGender'] == 'Female'), 'SRTitl1'] = 'Ms.'
+
+    strictly_male_titles = ['Rev. Mr.', 'Deacon', 'Father', 'Brother', 'Monsignor', 'Reverend Monsignor', 'Mr.']
+    strictly_female_titles = ['Mrs.', 'Miss', 'Sister', 'Ms.']
+
+    data.loc[(data['Gender'] == '') & (data['Titl1'].isin(strictly_male_titles)), 'Gender'] = 'Male'
+    data.loc[(data['Gender'] == '') & (data['Titl1'].isin(strictly_female_titles)), 'Gender'] = 'Female'
+    data.loc[(data['SRGender'] == '') & (data['SRTitl1'].isin(strictly_male_titles)), 'SRGender'] = 'Male'
+    data.loc[(data['SRGender'] == '') & (data['SRTitl1'].isin(strictly_female_titles)), 'SRGender'] = 'Female'
+
+    # SRGender is female, SRTitl1 is one of 'Ms.', 'Miss', 'Mrs.', Gender is unknown, then changed Titl1 and gender to Mr. Male 
+    data.loc[(data['SRGender'] == 'Female') & (data['SRTitl1'].isin(['Ms.', 'Miss', 'Mrs.'])) & (data['Gender'] == 'Unknown'), ['Gender', 'Titl1']] = ['Male', 'Mr.']
+    # SRGender is unknown, gender is male, Titl1 is Mr., SRlastname is same as Last name, SRTitl1 is blank, then change SRTitl1 and SRGender to Mrs. Female
+    data.loc[(data['SRGender'] == 'Unknown') & (data['Gender'] == 'Male') & (data['Titl1'] == 'Mr.') & (data['SRLastName'] == data['LastName']) & (data['SRTitl1'] == ''), ['SRTitl1', 'SRGender']] = ['Mrs.', 'Female']
+    # SRGender is unknown, gender is male, Titl1 is Mr., SRlastname is not the as Last name, SRTitl1 is blank, then change SRTitl1 and SRGender to Mrs. Female
+    data.loc[(data['SRGender'] == 'Unknown') & (data['Gender'] == 'Male') & (data['Titl1'] == 'Mr.') & (data['SRLastName'] != data['LastName']) & (data['SRTitl1'] == ''), ['SRTitl1', 'SRGender']] = ['Ms.', 'Female']
+
+    # Change MrtlStat based off Gender
+    data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ', na=False)) & (data['LastName'] == data['SRLastName']),'MrtlStat'] = 'Married'
+    data.loc[(data['MrtlStat'].str.contains('Religion|Civilly|Church Married|Church Marriage|Civil/Other', na=False)),'MrtlStat'] = 'Married'
+    data.loc[(data['MrtlStat'].str.contains('Never|Not Married|Cohabitating|Co-Habitating|Partner', na=False)),'MrtlStat', ] = 'Single'
+    data.loc[(data['MrtlStat'].str.contains('Unknown', na=False)),'MrtlStat'] = ''
+    data.loc[(data['MrtlStat'].str.contains('Deceased|Widow/Er|Widow', na=False)),'MrtlStat'] = 'Widowed'
+    data.loc[(data['MrtlStat'].str.contains('Separated', na=False)),'MrtlStat'] = 'Divorced'
 
     # Testcase 1 - Both genders are Male but addressee or salutation contains Ms. or Mrs.
     def check_gender_and_salutation(row):
@@ -309,24 +329,26 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
 
     data['Test Case Failed'] = data.apply(check_addressee_salutation, axis=1)
 
-    # Testcase  6 -	Head of house hold is not above the age of 18.
-    data['BDay']= pd.to_datetime(data['BDay'], errors="coerce")
-    data_6 = data.loc[data['BDay'] >= '01/01/2004']
-    ids = data_6.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 6'
+    # Testcase 6 - Head of household is not above the age of 18.
+    def check_head_of_household_age(row):
+        if row['BDay'] >= pd.Timestamp('2004-01-01'):
+            return row['Test Case Failed'] + ', 6'
+        else:
+            return row['Test Case Failed']
+
+    data['BDay'] = pd.to_datetime(data['BDay'], errors="coerce")
+    data['Test Case Failed'] = data.apply(check_head_of_household_age, axis=1)
 
     # Testcase 7 - Addressee or salutation contains "&" or "and" but it shows the Spouse as deceased
     # If SRinactive and inactive is yes skip this test
-    df = data[(data['SRDeceased'].str.contains('Yes') == True) &
-              (data['SRInactive'].str.contains('Yes') == True) &
-              (data['IsInactive'] != 'Yes')]
 
-    df = df[df['PrimAddText'].str.contains(" AND |&| and | And ")]
-    data_7 = df[df['PrimSalText'].str.contains(" AND |&| and | And ")]
-    ids = data_7.index.tolist()
-    for i in ids:
-        data.at[i, 'Test Case Failed'] += ', 7'
+    def check_addressee_and_spouse_deceased(row):
+        if ('Yes' in row['SRDeceased']) and ('Yes' not in row['SRInactive']) and (row['IsInactive'] != 'Yes') and (any(substring in row['PrimAddText'] for substring in [' AND ', '&', ' and ', ' And '])) and (any(substring in row['PrimSalText'] for substring in [' AND ', '&', ' and ', ' And '])):
+            return row['Test Case Failed'] + ', 7'
+        else:
+            return row['Test Case Failed']
+
+    data['Test Case Failed'] = data.apply(check_addressee_and_spouse_deceased, axis=1)
 
     # Testcase 8 - Addressee or salutation contains & or AND, but spouse's last or first name is empty.
     def check_and_in_addressee_salutation(row):
@@ -348,56 +370,95 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
 
     data['Test Case Failed'] = data.apply(check_deceased_and_status, axis=1)
 
-
-    # Testcase  10 - Spouse shows a deceased date, but inactive does not show yes. Does not equal to yes will pick up Blank and no.
-    data_10 = data[(data['SRDeceasedDate']!='') & (df['SRInactive']!='Yes')]
-    ids = data_10.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 10'
-
-    # Testcase  11 - Record shows a deceased date, but inactive does not show yes. Does not equal to yes will pick up Blank and no.
-    data_11 = data[(data['DeceasedDate']!='') & (data['Inactive']!='Yes')]
-    ids = data_11.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 11'
-
-    # Testcase  12 - There is a deceased date but  addressee or salutation contains "&" or "and" If Srinactive and inactive is yes skip this test
-    df = data[(data['SRDeceasedDate']!='') & (data['SRInactive'].str.contains('Yes')==False)]
-    df = df[df['PrimAddText'].str.contains("AND|&|and|And", na=False)]
-    data_12 = df[df['PrimSalText'].str.contains("AND|&|and|And", na=False)]  
-    ids = data_12.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 12'
-
-    # Testcase 13 - Spouse name information is filled in but marital status shows single. 
-    df = data[((data['SRLastName'] != '') | (data['SRFirstName'] != ''))]
-    data_13 = df[df['MrtlStat'] == 'single']
-    ids = data_13.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 13'
-
-    # Testcase  14 -Marital status is blank but Addressee or salutation has "&" or "and". If there is Spouse name 
-    # informationn they should be marked as "Partner" if they are not married but living together. 
-    df = data[data['MrtlStat'] == '']
-    df = df[df['PrimAddText'].str.contains("AND|&|and|And", na=False)]
-    data_14 = df[df['PrimSalText'].str.contains("AND|&|and|And", na=False)]
-    ids = data_14.index.tolist()
-    for i in ids:
-      data.at[i,'Test Case Failed']+=', 14'
-    
-    # Test case  15  Marital status does not reflect what is in the addressee/salutation i.e. widowed, but two people are in the add/sal, married but only one perosn is in add/sal
-    df = data[data['MrtlStat'].str.contains("Widow|Divorced|Single")]
-    data_15 = df[((df['PrimAddText'].str.contains(" AND |&| and | And ", na=False)) | (df['PrimSalText'].str.contains(" AND |&| and | And ", na=False))) & ~((df['IsInactive'] == 'Yes') | (df['Inactive'] == 'Yes') | (df['SRInactive'] == 'Yes'))]
-    ids = data_15.index.tolist()
-    for i in ids:
-        data.at[i, 'Test Case Failed'] += ', 15'
-
     # # Total cases
     # failed = data[(data['Test Case Failed'] != '')]
     # passed = data[(data['Test Case Failed'] == '') | (data['Notes']=='Passed')]
     # failed.loc[:, 'Test Case Failed'] = failed['Test Case Failed'].str[1:]
     # failed = failed[(failed['Test Case Failed'] != '')]
     # Total cases
+    # Testcase 10 - Spouse shows a deceased date, but inactive does not show yes.
+    def check_spouse_deceased_and_inactive(row):
+        if (row['SRDeceasedDate'] != '') and (row['SRInactive'] != 'Yes'):
+            return row['Test Case Failed'] + ', 10'
+        else:
+            return row['Test Case Failed']
+
+    data['Test Case Failed'] = data.apply(check_spouse_deceased_and_inactive, axis=1)
+
+    # Testcase 11 - Record shows a deceased date, but inactive does not show yes. 
+    # Does not equal to yes will pick up Blank and no.
+    def check_record_deceased_and_inactive(row):
+        if (row['DeceasedDate'] != '') and (row['Inactive'] != 'Yes'):
+            return row['Test Case Failed'] + ', 11'
+        else:
+            return row['Test Case Failed']
+
+    data['Test Case Failed'] = data.apply(check_record_deceased_and_inactive, axis=1)
+
+    # Testcase 12 - There is a deceased date but addressee or salutation contains "&" or "and"
+    # If Srinactive and inactive is yes skip this test
+    def check_deceased_date_and_addressee(row):
+        if (row['SRDeceasedDate'] != '') and ('Yes' not in row['SRInactive']) and (any(substring in row['PrimAddText'] for substring in ['AND', '&', 'and', 'And'])) and (any(substring in row['PrimSalText'] for substring in ['AND', '&', 'and', 'And'])):
+            return row['Test Case Failed'] + ', 12'
+        else:
+            return row['Test Case Failed']
+
+    data['Test Case Failed'] = data.apply(check_deceased_date_and_addressee, axis=1)
+
+
+    # Testcase 13 - Spouse name information is filled in but marital status shows single.
+    def check_spouse_info_and_single(row):
+        if (row['SRLastName'] or row['SRFirstName']) and (row['MrtlStat'] == 'single'):
+            return row['Test Case Failed'] + ', 13'
+        else:
+            return row['Test Case Failed']
+
+    data['Test Case Failed'] = data.apply(check_spouse_info_and_single, axis=1)
+
+    # Testcase 14 - Marital status is blank but Addressee or salutation has "&" or "and". 
+    # If there is Spouse name information they should be marked as "Partner" 
+    # if they are not married but living together.
+    def check_marital_status_and_addressee(row):
+        if (not row['MrtlStat']) and (any(substring in row['PrimAddText'] for substring in ['AND', '&', 'and', 'And'])) and (any(substring in row['PrimSalText'] for substring in ['AND', '&', 'and', 'And'])):
+            return row['Test Case Failed'] + ', 14'
+        else:
+            return row['Test Case Failed']
+
+    data['Test Case Failed'] = data.apply(check_marital_status_and_addressee, axis=1)
+
+    # Test case 15 - Marital status does not reflect what is in the addressee/salutation 
+    # i.e. widowed, but two people are in the add/sal, married but only one person is in add/sal
+    def check_marital_status_and_addsal(row):
+        if ("Widow" in row['MrtlStat'] or "Divorced" in row['MrtlStat'] or "Single" in row['MrtlStat']) and ((any(substring in row['PrimAddText'] for substring in [' AND ', '&', ' and ', ' And ']) or any(substring in row['PrimSalText'] for substring in [' AND ', '&', ' and ', ' And '])) and not any(row[val] == 'Yes' for val in ['IsInactive', 'Inactive', 'SRInactive'])):
+            return row['Test Case Failed'] + ', 15'
+        else:
+            return row['Test Case Failed']
+
+    data['Test Case Failed'] = data.apply(check_marital_status_and_addsal, axis=1)
+    
+                               ########vvvvvThis is Test case 16 Not in use yetvvvvv########
+    # Test case 16 - Standardize Titles - Titles must be within the table and Gender and Title both cannot be blank
+    # AllRETitl1s = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deacon', 'Judge', 
+    #             'Lt. Col.', 'Col. Ret.', 'Major', 'Capt.', 'Maj. Gen.', 'Family of', 'Senator', 'Reverend', 
+    #             'Lt.', 'Cmdr.', 'Msgt.', 'Sister', 'Drs.', 'Master', 'Sgt. Maj.', 'SMSgt.', 'Prof.', 'Lt. Col. Ret.', 'Rev. Dr.', 
+    #             'Father', 'Brother', 'Bishop', 'Gen.', 'Admiral', 'Very Reverend', 'MMC', 'Monsignor', '1st Lt.', 'Reverend Monsignor', 
+    #             'Maj.', 'Most Reverend', 'Bishop Emeritus','Mrs.', 'Mr.', 'Ms.', 'Miss','Sr.', 'Family of']
+
+    # def check_Titl1(row):
+    #     # Fail when Both SRGender and SRTitl1 are Blank, but if SRLastName is not blank.
+    #     if not row['SRGender'] and not row['SRTitl1'] and row['SRLastName']:
+    #         return row['Test Case Failed'] + ', 16'
+    #     # Fail if Both Gender and Titl1 are Blank.
+    #     elif not row['Gender'] and not row['Titl1']:
+    #         return row['Test Case Failed'] + ', 16'
+    #     # Fail if Titl1 or SRTitl1 are not blank and what they contain is not found in AllRETitl1s.
+    #     elif (row['Titl1'] and row['Titl1'] not in AllRETitl1s) or (row['SRTitl1'] and row['SRTitl1'] not in AllRETitl1s):
+    #         return row['Test Case Failed'] + ', 16'
+    #     else:
+    #         return row['Test Case Failed']
+
+    # data['Test Case Failed'] = data.apply(check_Titl1, axis=1)
+                                ########^^^^^This is Test case 16 Not in use yet^^^^^########
 
     failed = data[(data['Test Case Failed'] != '') & (data['Notes'] != 'Passed')].copy()
     passed = data[(data['Test Case Failed'] == '') | (data['Notes'] == 'Passed')].copy()
@@ -420,12 +481,34 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     # Dataframe that are new containing *
     new = passed[passed['ConsID'].str.contains ("*", regex = False)]
 
-    # Drop Columns for importOmatic file
-    impomatic = new.drop(columns = ['KeyInd', 'ConsCodeImpID', 'Nickname', 'Deceased', 
-    'DeceasedDate', 'Inactive', 'SRSuff2', 'SRNickname', 'SRDeceased', 'SRDeceasedDate','SRInactive', 
-    'PrimAddText', 'PrimSalText', 'AddrImpID', 'AddrType', 'AddrRegion', 'AddrSeasonal', 'AddrSeasFrom', 
-    'AddrSeasTo', 'PhoneAddrImpID','PhoneImpID', 'PhoneType','DateTo', 'NameChanged', 'StreetChanged', 
-    'MailingChanged', 'AltChanged', 'Test Case Failed', 'Notes']) #, 'AddrImpID.1', 'PhoneAddrImpID.1', 'PhoneImpID.1'])
+    # Columns to drop from new which becomes importOmatic
+    columns_to_drop_impomatic = ['KeyInd', 'ConsCodeImpID', 'Nickname', 'Deceased', 
+                    'DeceasedDate', 'Inactive', 'SRSuff2', 'SRNickname', 'SRDeceased', 
+                    'SRDeceasedDate', 'SRInactive', 'PrimAddText', 'PrimSalText', 
+                    'AddrImpID', 'AddrType', 'AddrRegion', 'AddrSeasonal', 'AddrSeasFrom', 
+                    'AddrSeasTo', 'PhoneAddrImpID', 'PhoneImpID', 'PhoneType', 'DateTo', 
+                    'NameChanged', 'StreetChanged', 'MailingChanged', 'AltChanged', 
+                    'Test Case Failed', 'Notes', 'DateReg']
+
+    # Check if column exists in 'new' dataframe before dropping
+    columns_to_drop_impomatic_existing = [col for col in columns_to_drop_impomatic if col in new.columns]
+
+    # Drop the columns from the 'new' dataframe
+    impomatic = new.drop(columns=columns_to_drop_impomatic_existing)
+
+    # Columns to drop for the passed dataframe which becomes redata
+    columns_to_drop_passed = ['ImportID', 'ConsCodeImpID', 'Suff1', 'SRSuff2', 'SRInactive', 
+                            'AddrRegion', 'AddrImpID', 'AddrImpID', 'PhoneAddrImpID', 'PhoneImpID', 
+                            'PhoneAddrImpID', 'PhoneImpID', 'DateTo', 'SecondID', 'Test Case Failed', 
+                            'PrimAddText', 'PrimSalText', 'NameChanged', 'StreetChanged', 
+                            'MailingChanged', 'AltChanged', 'Notes', 'Inactive', 'NameIsCorrect', 
+                            'AddrImpID.1', 'AddrImpID.2', 'PhoneAddrImpID.1', 'PhoneImpID.1', 'DateReg']
+
+    # Check if column exists in 'passed' dataframe before dropping
+    columns_to_drop_passed_existing = [col for col in columns_to_drop_passed if col in passed.columns]
+
+    # Drop the columns from the 'passed' dataframe
+    redata = passed.drop(columns=columns_to_drop_passed_existing)
 
     # Creates spouse column and fills in with Yes if 
     impomatic.insert(loc = 15, column='Spouse', value = '')
@@ -436,10 +519,7 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     impomatic.loc[(impomatic['AddrCity'] != '') &  impomatic['AddrState'] != '', 'Country'] = 'United States'
 
     # Drop unwanted columns from Passed file
-    redata = passed.drop(columns=['ImportID', 'ConsCodeImpID', 'Suff1', 'SRSuff2', 'SRInactive', 
-    'AddrRegion','AddrImpID', 'AddrImpID', 'PhoneAddrImpID', 'PhoneImpID', 'PhoneAddrImpID', 
-    'PhoneImpID', 'DateTo', 'SecondID', 'Test Case Failed', 'PrimAddText', 'PrimSalText',
-    'NameChanged', 'StreetChanged', 'MailingChanged', 'AltChanged', 'Notes' ])
+
 
     # If ConsID contains *, remove the row - These are new records that are used for importOmatic
     redata = redata[~redata['ConsID'].str.contains("*", regex = False)].reset_index(drop=True)
@@ -447,12 +527,7 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     # Change Column Spelling to fit Raiser's Edge Import
     redata.rename(columns = {'DeceasedDate':'DecDate', 'SRDeceasedDate':'SRDecDate'}, inplace = True)
 
-    # Add These Columns to a specific location
-    # redata.insert(loc = 2, column='ConsCodeImpID', value = '')
-    # redata.insert(loc = 4, column='ConsCodeDateFrom', value = '')
-    # redata.insert(loc = 5, column='ConsCodeDateTo', value = '')
-
-    # Change the absolute mess of Title 1 being used to fit Raiser's Edge
+    # Change the absolute mess of Titl1 1 being used to fit Raiser's Edge
     redata.loc[redata['Titl1'].eq('MM') , 'Titl1'] = ''
     redata.loc[redata['Titl1'].eq('A') , 'Titl1'] = ''
     redata.loc[redata['Titl1'].eq('B') , 'Titl1'] = ''
@@ -532,27 +607,6 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     redata.loc[(redata['SRTitl1'].str.contains('')),'SRTitl1'] = ''
     redata.loc[(redata['SRTitl1'].str.contains('')),'SRTitl1'] = ''
 
-    # Fill in Gender based on title - I think this can be removed given Lines 27 - 45
-    redata.loc[redata['Titl1'].eq('Mr.'), 'Gender'] = 'Male'
-    redata.loc[redata['Titl1'].eq('Mrs.'), 'Gender'] = 'Female'
-    redata.loc[redata['Titl1'].eq('Ms.'), 'Gender'] = 'Female'
-    redata.loc[redata['Titl1'].eq('Miss'), 'Gender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Mr.'), 'SRGender'] = 'Male'
-    redata.loc[redata['SRTitl1'].eq('Mrs.'), 'SRGender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Ms.'), 'SRGender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Miss'), 'SRGender'] = 'Female'
-
-    # Check Gender Change Gender Based on Title
-    redata.loc[redata['Titl1'].eq('Mr.') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Male'
-    redata.loc[redata['Titl1'].eq('Mrs.') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Female'
-    redata.loc[redata['Titl1'].eq('Ms.') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Female'
-    redata.loc[redata['Titl1'].eq('Miss') & (redata['Gender'].str.contains('Unknown|Home ')), 'Gender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Mr.') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Male'
-    redata.loc[redata['SRTitl1'].eq('Mrs.') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Ms.') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
-    redata.loc[redata['SRTitl1'].eq('Miss') & (redata['SRGender'].str.contains('Unknown|Home ')), 'SRGender'] = 'Female'
-
-
     # Standardize Phone Type and remove these horrific phone types being used. 
     redata.loc[(redata['PhoneType'].str.contains('Her')),'PhoneType'] = 'Cell'
     redata.loc[(redata['PhoneType'].str.contains('His')),'PhoneType'] = 'Cell'
@@ -580,8 +634,8 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     redata.loc[(redata['AddrCity'].str.contains(' Fl')),'AddrState'] = 'FL'
     redata.loc[(redata['AddrCity'].str.contains(' FL')),'AddrState'] = 'FL'
     redata.loc[(redata['AddrCity'].str.contains(', Fl')),'AddrState'] = 'FL'
-
-  # Splits the 'AddrCity' column of redata into city and state parts, and fills NaN values in the 'AddrState' column with the extracted state.  
+    
+    # Splits the 'AddrCity' column of redata into city and state parts, and fills NaN values in the 'AddrState' column with the extracted state.  
     def split_city_state(redata):
 
         # List of U.S. state abbreviations
@@ -874,4 +928,4 @@ def main(base_dir: Path) -> None:
 
 if __name__ == '__main__':
     root = get_root()  # root = "users/path"
-    main(base_dir=root) 
+    main(base_dir=root)
