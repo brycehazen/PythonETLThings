@@ -15,7 +15,7 @@ as a .csv. These two files will be needed for this process to work.
   - `removePhones.py` will look at `redata.csv` and compare `PhoneConsID.csv`, this `PhoneConsID.csv` is a collection pulled from SQL of all Phones in RE. If the Phone is already in RE and found in `redata.csv`. Once removed it will output updated_redata.csv.
   - If a record and Phone is not found in `PhoneConsID.csv`, but it caused an exception and was put into `redataWithExceptions.csv`, the script will add it to `PhoneConsID.csv`. This will result in the record not causing an exception in the future.
 - **Not Yet added**:
-  - Soon I will add an addition part of the script to update constituency codes. 
+  - Soon I will add an additional part of the script to update constituency codes. This will invlove taking the query created from importing, exporting it back out with all the records ConsCode. Then comparing this ConsCode export to `redata.csv`
 # Scripts Overview
 
 This repository contains two Python scripts for data manipulation:
