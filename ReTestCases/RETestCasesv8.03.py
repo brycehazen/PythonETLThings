@@ -276,6 +276,9 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     data.loc[(data['MrtlStat'].str.contains('Invalid Marriage', na=False)),'MrtlStat'] = 'Married'
     data.loc[(data['MrtlStat'].str.contains('Valid Marriage', na=False)),'MrtlStat'] = 'Married'
     data.loc[(data['MrtlStat'].str.contains('Head', na=False)),'MrtlStat'] = 'Married'
+    data.loc[(data['MrtlStat'].str.contains('Catholic Marriage', na=False)),'MrtlStat'] = 'Married'
+    data.loc[(data['MrtlStat'].str.contains('Engaged', na=False)),'MrtlStat'] = 'Married'
+    data.loc[(data['MrtlStat'].str.contains('Annulment', na=False)),'MrtlStat'] = 'Annulled'
 
     # Testcase 1 - Both genders are Male but addressee or salutation contains Ms. or Mrs.
     def check_gender_and_salutation(row):
