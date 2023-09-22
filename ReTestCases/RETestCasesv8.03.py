@@ -266,7 +266,7 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     # SRGender is unknown, gender is male, Titl1 is Mr., SRlastname is not the as Last name, SRTitl1 is blank, then change SRTitl1 and SRGender to Mrs. Female
     data.loc[(data['SRGender'] == 'Unknown') & (data['Gender'] == 'Male') & (data['Titl1'] == 'Mr.') & (data['SRLastName'] != data['LastName']) & (data['SRTitl1'] == ''), ['SRTitl1', 'SRGender']] = ['Ms.', 'Female']
 
-    # Change MrtlStat based off Gender
+    # Change MrtlStat based off Gender or change to one used in RE
     data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ', na=False)) & (data['LastName'] == data['SRLastName']),'MrtlStat'] = 'Married'
     data.loc[(data['MrtlStat'].str.contains('Religion|Civilly|Church Married|Church Marriage|Civil/Other', na=False)),'MrtlStat'] = 'Married'
     data.loc[(data['MrtlStat'].str.contains('Never|Not Married|Cohabitating|Co-Habitating|Partner', na=False)),'MrtlStat', ] = 'Single'
