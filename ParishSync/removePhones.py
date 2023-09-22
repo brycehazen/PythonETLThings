@@ -22,7 +22,7 @@ if os.path.exists("redataWithExceptions.csv"):
     phone_cons_id.to_csv("PhoneConsID.csv", index=False)
 
 # Read datasets
-redata = pd.read_csv("redata.csv", encoding='ISO-8859-1')
+redata = pd.read_csv("RE_Data.csv", encoding='ISO-8859-1')
 phone_cons_id['Phone'] = phone_cons_id['Phone'].astype(str)
 
 # Removing entries from 'PhoneNum' and 'PhoneType' in redata based on phone_cons_id matches
@@ -34,4 +34,4 @@ mask_phone_1 = redata.set_index(['ConsID', 'PhoneNum.1']).index.isin(phone_cons_
 redata.loc[mask_phone_1, ['PhoneNum.1', 'PhoneType.1']] = ''
 
 # Save the updated data to a new CSV file
-redata.to_csv("updated_redata.csv", index=False)
+redata.to_csv("updated_RE_Data.csv", index=False)
