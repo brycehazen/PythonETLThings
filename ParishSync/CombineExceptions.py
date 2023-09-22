@@ -2,7 +2,7 @@ import pandas as pd
 
 # Read both CSV files
 summary_data = pd.read_csv("New Import Control-Summary Report.csv", header=None)
-redata_exceptions = pd.read_csv("updated_redata.csv")
+redata_exceptions = pd.read_csv("updated_RE_Data.csv")
 
 # Create a placeholder DataFrame with the same number of rows as redata_exceptions 
 # and the columns: 'Column', 'ColumnValue', 'Reason'
