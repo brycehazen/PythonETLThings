@@ -2,8 +2,8 @@ import pandas as pd
 import os
 
 # Check if redataWithExceptions.csv exists
-if os.path.exists("redataWithExceptions.csv"):
-    exceptions = pd.read_csv("redataWithExceptions.csv", encoding='ISO-8859-1')
+if os.path.exists("updated_RE_DataithExceptions.csv"):
+    exceptions = pd.read_csv("updated_RE_DataWithExceptions.csv", encoding='ISO-8859-1')
     
     # Filter rows based on conditions
     condition = (exceptions['Column'] == 'PhoneType') & (exceptions['Reason'].str.contains('Error saving record: A duplicate phone number and phone type exists.'))
