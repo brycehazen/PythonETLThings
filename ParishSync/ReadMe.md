@@ -9,13 +9,13 @@ as a .csv. These two files will be needed for this process to work.
 ## Features
 
 - **Tracking Exceptions**: 
-  - After importing records, RE creates a New Import Control-Summary Report - This saved as a csv will be combined with `redata.csv` to output `redataWithExceptions.csv`
+  - After importing records, RE creates a New Import Control-Summary Report - This saved as a csv will be combined with `RE_Data.csv` to output `RE_DataWithExceptions.csv`
   - This will have have the data from redata.csv combined with the reason it was not imported. This will make it easier to know what needs to be corrected as well as track what and why records were not Imported
 - **Removing Phone Numbers**: 
-  - `removePhones.py` will look at `redata.csv` and compare `PhoneConsID.csv`, this `PhoneConsID.csv` is a collection pulled from SQL of all Phones in RE. If the Phone is already in RE and found in `redata.csv`. Once removed it will output updated_redata.csv.
-  - If a record and Phone is not found in `PhoneConsID.csv`, but it caused an exception and was put into `redataWithExceptions.csv`, the script will add it to `PhoneConsID.csv`. This will result in the record not causing an exception in the future.
+  - `removePhones.py` will look at `RE_data.csv` and compare `PhoneConsID.csv`, this `PhoneConsID.csv` is a collection pulled from SQL of all Phones in RE. If the Phone is already in RE and found in `redata.csv`. Once removed it will output updated_redata.csv.
+  - If a record and Phone is not found in `PhoneConsID.csv`, but it caused an exception and was put into `RE_DataWithExceptions.csv`, the script will add it to `PhoneConsID.csv`. This will result in the record not causing an exception in the future.
 - **Not Yet added**:
-  - Soon I will add an additional part of the script to update constituency codes. This will invlove taking the query created from importing, exporting it back out with all the records ConsCode. Then comparing this ConsCode export to `redata.csv`
+  - Soon I will add an additional part of the script to update constituency codes. This will invlove taking the query created from importing, exporting it back out with all the records ConsCode. Then comparing this ConsCode export to `RE_data.csv`
 # Scripts Overview
 
 This repository contains two Python scripts for data manipulation:
