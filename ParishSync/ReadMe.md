@@ -3,8 +3,7 @@
 
 ## Overview
 
-Taking data after it has been run through [ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases) and then imported in RE. After improting, you will get an exception file as well as a New Import Control-Summary Report that needs to be saved
-as a .csv. These two files will be needed for this process to work. 
+Taking data after it has been run through [ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases). After runing RETestCases, you will get RE_data.csv, this file as well as a PhoneConsID.csv, are need to start this procesS. 
 
 ## Features
 
