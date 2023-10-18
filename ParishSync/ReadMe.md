@@ -1,9 +1,14 @@
+## Table of Contents for Parish Sync Process - No new records
 
-# ParishSync
+- [Overview](#overview)
+- [Features](#features)
+- [Scripts details](#scripts-details)
+- [removePhones script](#removephones-script)
+- [combineExceptions script](#combineexceptions-script)
 
-## Overview
+## Overview 
 - **You will need two csv files to start**:
-1. `RE_data.csv` - This comes from RETestCases[ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases)
+1. `RE_data.csv` - This comes from [ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases)
 2. `PhoneConsID.csv` - This comes from SQL and has all Phones/Emails currently in Raiser's Edge.
 - **Genral Steps**:
 1. Place both csv listed about into the same folder as both scripts as well as any other csv generated throuhgout the process.
@@ -24,22 +29,23 @@
 - **Not Yet added**:
   - Soon I will add an additional part of the script to update constituency codes. This will invlove taking the query created from importing, exporting it back out with all the records ConsCode. Then comparing this ConsCode export to `RE_data.csv`
 
-# Scripts Overview
-This repository contains two Python scripts for data manipulation. For this two work, it is split into two scripts. One is ran before and the other after importing into Rasier's Edge":
-1. `removePhones.py`: BEFORE importing into Raiser's Edge, this filters and removes phone-related entries from "RE_Data.csv"(comes from running [ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases)) based on the data in `PhoneConsID.csv` 
-2. `CombineExceptions.py`: AFTER improting into Raiser's Edge, "New Import Control-Summary Report" is created and needs to be saved as `New Import Control-Summary Report.csv` this then appends them to `updated_RE_Data.csv` outputting `RE_DataWithExceptions.csv`.
+## Scripts details
+- **Summary**:
+- This repository contains two Python scripts for data manipulation. For this two work, it is split into two scripts. One is ran before and the other after importing into Rasier's Edge.
+- **Scripts used**:
+- `removePhones.py`: BEFORE importing into Raiser's Edge, this filters and removes phone-related entries from `RE_Data.csv` based on the data in `PhoneConsID.csv`
+- `CombineExceptions.py`: AFTER improting into Raiser's Edge, "New Import Control-Summary Report" is created and needs to be saved as `New Import Control-Summary Report.csv` this then appends them to `updated_RE_Data.csv` outputting `RE_DataWithExceptions.csv`.
 
 ---
 
-## removePhones.py
-
-### Description:
+## removePhones script
+**Description**:
 1. This script checks for `updated_RE_DataWithExceptions.csv` and, if found, extracts specific phone-related errors to append them to `PhoneConsID.csv`.
 2. It then reads `RE_Data.csv` and removes phone entries that match those in `PhoneConsID.csv`.
 3. The updated data is saved to `updated_RE_Data.csv`.
 4. This script should be ran one more time after running `CombineExceptions.py` since this produces `updated_RE_DataWithExceptions.csv`
 
-### Usage:
+**Usage**:
 ```bash
 python CombineExceptions.py
 ```
@@ -47,13 +53,13 @@ python CombineExceptions.py
 
 ---
 
-## CombineExceptions.py
+## combineExceptions script
 
-### Description:
+**Description**:
 1. This script reads data from `New Import Control-Summary Report.csv` and `updated_RE_Data.csv`
 2. Then combines specific exceptions from `New Import Control-Summary Report.csv` with  `updated_RE_Data.csv`. The combined data is saved to `updated_RE_DataWithExceptions.csv`.
 
-### Usage:
+**Usage**:
 ```bash
 python CombineExceptions.py
 ```
