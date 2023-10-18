@@ -83,10 +83,9 @@ for file in files:
         # List of columns to check
         columns_to_check = [f'CnSolCd_1_{i:02d}_Solicit_Code' for i in range(1, 9)]
 
-        # List of strings to search for
+        # List of strings to search for 'No OCA Solicitations', 'Do not Solicit',
         strings_to_search = [
-            'no mail', 'No OCA Solicitations', 'Requested Removal', 
-            'Do not Solicit', 'Do not mail or email', 
+            'no mail', 'Requested Removal', 'Do not mail or email', 
             'No OCA reminders', 'No campaign Reminders'
         ]
 
