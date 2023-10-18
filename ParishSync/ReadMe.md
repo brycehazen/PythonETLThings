@@ -39,9 +39,9 @@
 ## removePhones script
 **Description**:
 1. This script checks for `updated_RE_DataWithExceptions.csv` and, if found, extracts specific phone-related errors to append them to `PhoneConsID.csv`.
-2. It then reads `RE_Data.csv` and removes phone entries that match those in `PhoneConsID.csv`.
-3. The updated data is saved to `updated_RE_Data.csv`.
-4. This script should be ran one more time after running `CombineExceptions.py` since this produces `updated_RE_DataWithExceptions.csv`
+2. It then reads `RE_Data.csv` and removes phone entries that match those in `PhoneConsID.csv`. A match is found if the phone/email + ConsID are matched in `PhoneConsID.csv`
+4. The updated data is saved to `updated_RE_Data.csv`.
+5. This script should be ran one more time after running `CombineExceptions.py` since this produces `updated_RE_DataWithExceptions.csv` and updates `PhoneConsID.csv` with phone/emails not found the first time. 
 
 **Usage**:
 ```bash
@@ -54,8 +54,9 @@ python CombineExceptions.py
 ## combineExceptions script
 
 **Description**:
-1. This script reads data from `New Import Control-Summary Report.csv` and `updated_RE_Data.csv`
+1. This script reads data from `New Import Control-Summary Report.csv` and `updated_RE_Data.csv`.
 2. Then combines specific exceptions from `New Import Control-Summary Report.csv` with  `updated_RE_Data.csv`. The combined data is saved to `updated_RE_DataWithExceptions.csv`.
+3. This script does what the exception file created from the import process should already do. Giving you the record and the reason it was not imported in one file. Rasier's Edge is stupid in a lot of ways. 
 
 **Usage**:
 ```bash
