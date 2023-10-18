@@ -30,14 +30,14 @@ python script_name.py
 ---
 3. Once executed, you'll get a new Excel file titled `visualizations.xlsx` in the same directory.
 
-## Visualizations Generated - A1 is empty
+## Visualizations Generated - 
 - Line Plot for $'s Pledged
 - Bar Chart for # Donors
 - Stacked Bar Chart for $'s Pledged
 - Pie Chart for 2023 $'s Pledged
 - Line Plot for # Donors
 - Pie Chart for 2023 # Donors
-- Columns
+- Columns: A1 is empty
 ```
     ["2023 $'s Pledged",
     "2023 # Donors",
@@ -51,7 +51,7 @@ python script_name.py
     "2019 # Donors"]
 ```
 
-- Rows
+- Rows: A1 is empty
 ```
     ["Pre Appeal Mailing",
     "Non-Donor Letter",
