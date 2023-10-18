@@ -50,7 +50,7 @@ python script_name.py
     "2019 $'s Pledged",
     "2019 # Donors"]
 ```
----
+
 - Rows
 ```
     ["Pre Appeal Mailing",
@@ -61,7 +61,6 @@ python script_name.py
     "Stocks",
     "Credit Card"]
 ```
----
 
 ## Troubleshooting
 If you run into any issues:
