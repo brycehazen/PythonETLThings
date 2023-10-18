@@ -11,7 +11,7 @@
 1. `RE_data.csv` - This comes from [ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases)
 2. `PhoneConsID.csv` - This comes from SQL and has all Phones/Emails currently in Raiser's Edge.
 - **Genral Steps**:
-1. Place both csv listed about into the same folder as both scripts as well as any other csv generated throuhgout the process.
+1. Place both csv listed above into the same folder as both scripts, as well as any other csv generated throughout the process. 
 2. Run `removePhones.py` - This will output `updated_RE_Data.csv`.
 3. Import `updated_RE_Data.csv` into RE ensuring "Import Control-Summary Report" is created and saved as a csv.
 4. Run `CombineExceptions.py` - This will output `updated_RE_DataWithExceptions.csv`
