@@ -52,8 +52,6 @@ python script_name.py
 ```
 ---
 - Rows
-python
-Copy code
 ```
     ["Pre Appeal Mailing",
     "Non-Donor Letter",
