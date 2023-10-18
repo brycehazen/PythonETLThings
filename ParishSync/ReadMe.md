@@ -21,7 +21,7 @@
 
 ## Features
 - **Removing Phone Numbers**: 
-  - `removePhones.py` will look at `RE_data.csv` and compare `PhoneConsID.csv`.  `PhoneConsID.csv` is a collection pulled from SQL of all Phones in RE. If the Phone is already in RE and found in `RE_Data.csv`, it will get removed from your import file and output `updated_RE_Data.csv`.
+  - `removePhones.py` will look at `RE_data.csv` and compare `PhoneConsID.csv`.  `PhoneConsID.csv` is a collection pulled from SQL of all Phones in RE. If the Phone is already in RE and found in `RE_Data.csv`, it will get removed and output `updated_RE_Data.csv`. This is will be your import file for Raiser's Edge. With duplicate phone numbers removed from your import file, less exceptions will be created. 
   - If a record and Phone is not found in `PhoneConsID.csv`, but it caused an exception and was put into `RE_DataWithExceptions.csv`, the script will add it to `PhoneConsID.csv`. This will result in the record not causing an exception in the future.
 - **Tracking Exceptions**: 
   - After importing records, RE creates a New Import Control-Summary Report - This saved as a csv will be combined with `RE_Data.csv` to output `RE_DataWithExceptions.csv`
