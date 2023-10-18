@@ -1,23 +1,10 @@
 ## Table of Contents for Parish Sync Process - No new records
 
-- [Overview](#overview)
 - [Features](#features)
 - [Scripts details](#scripts-details)
+- [Overview](#overview)
 - [removePhones script](#removephones-script)
 - [combineExceptions script](#combineexceptions-script)
-
-## Overview 
-- **You will need two csv files to start**:
-1. `RE_data.csv` - This comes from [ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases)
-2. `PhoneConsID.csv` - This comes from SQL and has all Phones/Emails currently in Raiser's Edge.
-- **Genral Steps**:
-1. Place both csv listed above into the same folder as both scripts, as well as any other csv generated throughout the process. 
-2. Run `removePhones.py` - This will output `updated_RE_Data.csv`.
-3. Import `updated_RE_Data.csv` into RE ensuring "Import Control-Summary Report" is created and saved as a csv.
-4. Run `CombineExceptions.py` - This will output `updated_RE_DataWithExceptions.csv`
-5. Run `removePhones.py` once more to update `PhoneConsID.csv` with any new phone numbers that weren't already in `PhoneConsID.csv`
-6. Fix exceptions in `updated_RE_DataWithExceptions.csv` and import until all exceptions have cleared
-
 
 ## Features
 - **Removing Phone Numbers**: 
@@ -36,6 +23,17 @@
 - `removePhones.py`: BEFORE importing into Raiser's Edge, this filters and removes phone-related entries from `RE_Data.csv` based on the data in `PhoneConsID.csv`
 - `CombineExceptions.py`: AFTER improting into Raiser's Edge, "New Import Control-Summary Report" is created and needs to be saved as `New Import Control-Summary Report.csv` this then appends them to `updated_RE_Data.csv` outputting `RE_DataWithExceptions.csv`.
 
+## Overview 
+- **You will need two csv files to start**:
+1. `RE_data.csv` - This comes from [ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases)
+2. `PhoneConsID.csv` - This comes from SQL and has all Phones/Emails currently in Raiser's Edge.
+- **Genral Steps**:
+1. Place both csv listed above into the same folder as both scripts, as well as any other csv generated throughout the process. 
+2. Run `removePhones.py` - This will output `updated_RE_Data.csv`.
+3. Import `updated_RE_Data.csv` into RE ensuring "Import Control-Summary Report" is created and saved as a csv.
+4. Run `CombineExceptions.py` - This will output `updated_RE_DataWithExceptions.csv`
+5. Run `removePhones.py` once more to update `PhoneConsID.csv` with any new phone numbers that weren't already in `PhoneConsID.csv`
+6. Fix exceptions in `updated_RE_DataWithExceptions.csv` and import until all exceptions have cleared
 ---
 
 ## removePhones script
