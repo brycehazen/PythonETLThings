@@ -2,8 +2,17 @@
 # ParishSync
 
 ## Overview
+- **You will need two csv files to start**:
+1. `RE_data.csv` - This comes from RETestCases[ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases)
+2. `PhoneConsID.csv` - This comes from SQL and has all Phones/Emails currently in Raiser's Edge.
+- **Genral Steps**:
+1. Place both csv listed about into the same folder as both scripts as well as any other csv generated throuhgout the process.
+2. Run `removePhones.py` - This will output `updated_RE_Data.csv`.
+3. Import `updated_RE_Data.csv` into RE ensuring "Import Control-Summary Report" is created and saved as a csv.
+4. Run `CombineExceptions.py` - This will output `updated_RE_DataWithExceptions.csv`
+5. Run `removePhones.py` once more to update `PhoneConsID.csv` with any new phone numbers that weren't already in `PhoneConsID.csv`
+6. Fix exceptions in `updated_RE_DataWithExceptions.csv` and import until all exceptions have cleared
 
-Taking data after it has been run through [ReTestCases](https://github.com/brycehazen/PythonETLThings/tree/main/ReTestCases). After runing RETestCases, you will get RE_data.csv, this file as well as a PhoneConsID.csv, are needed to start this procesS. 
 
 ## Features
 - **Removing Phone Numbers**: 
