@@ -12,9 +12,9 @@ First, install PyInstaller using pip:
 
 #### 2. **Run PyInstaller:**
 
-Navigate to the directory containing your script (`RETestCase_with_GUI.py`) in your terminal or command prompt, then execute the following command to compile into an exe:
+Navigate to the directory containing your script (`RETestCasesv804.py`) in your terminal or command prompt, then execute the following command to compile into an exe:
 
-    pyinstaller --onefile RETestCase_with_GUI.py
+    pyinstaller --onefile RETestCasesv804.py
 
 **Explanation of Parameters**:
 
@@ -31,7 +31,7 @@ Post execution, PyInstaller will generate multiple directories. Your .exe file c
 You're now ready to distribute the generated .exe file to users. They won't need Python installed to run it.
 ### Notes:
 
-- Ensure all required assets and dependencies are available or properly referenced. For example, if `RETestCases_original_v8.py` imports other libraries or files, they should be available in the directory or be included in the Python environment when running PyInstaller.
+- Ensure all required assets and dependencies are available or properly referenced. For example, if `RETestCasesv804.py` imports other libraries or files, they should be available in the directory or be included in the Python environment when running PyInstaller.
 
 - The first time you run PyInstaller, it might take a bit longer as it collects all required files. Subsequent runs will be faster.
 
