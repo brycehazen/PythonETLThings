@@ -465,8 +465,8 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     # data['Test Case Failed'] = data.apply(check_Titl1, axis=1)
                                 ########^^^^^This is Test case 16 Not in use yet^^^^^########
 
-    failed = data[(data['Test Case Failed'] != '') & (data['Notes'] != 'Passed')].copy()
-    passed = data[(data['Test Case Failed'] == '') | (data['Notes'] == 'Passed')].copy()
+    failed = data[(data['Test Case Failed'] != '') & (data['NameIsCorrect'] != 'Yes')].copy()
+    passed = data[(data['Test Case Failed'] == '') | (data['NameIsCorrect'] == 'Yes')].copy()
     failed.loc[:, 'Test Case Failed'] = failed['Test Case Failed'].str[1:]
     failed = failed[(failed['Test Case Failed'] != '')]
 
