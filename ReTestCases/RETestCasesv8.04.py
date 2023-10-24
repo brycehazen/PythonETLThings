@@ -282,8 +282,9 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     # Testcase 1 - Both genders are Male but addressee or salutation contains Ms. or Mrs.
     def check_gender_and_salutation(row):
         if (row['Gender'] == 'Male') and (row['SRGender'] == 'Male') and \
-          (('Ms' in row['PrimAddText']) or ('Mrs' in row['PrimAddText']) or
-            ('Ms' in row['PrimSalText']) or ('Mrs' in row['PrimSalText'])):
+        (('Ms' in row['PrimAddText']) or ('Mrs' in row['PrimAddText']) or
+            ('Ms' in row['PrimSalText']) or ('Mrs' in row['PrimSalText'])) and \
+        (row['SRDeceased'] != 'Yes'):
             return row['Test Case Failed'] + ', 1'
         else:
             return row['Test Case Failed']
