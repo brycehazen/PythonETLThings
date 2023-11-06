@@ -433,14 +433,22 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
 
     # Test case 15 - Marital status does not reflect what is in the addressee/salutation 
     # i.e. widowed, but two people are in the add/sal, married but only one person is in add/sal
+    # i.e Single will pass if LastName and SRLastNAme are not equal
     def check_marital_status_and_addsal(row):
-        if ("Widow" in row['MrtlStat'] or "Divorced" in row['MrtlStat'] or "Single" in row['MrtlStat']) and ((any(substring in row['PrimAddText'] for substring in [' AND ', '&', ' and ', ' And ']) or any(substring in row['PrimSalText'] for substring in [' AND ', '&', ' and ', ' And '])) and not any(row[val] == 'Yes' for val in ['IsInactive', 'Inactive', 'SRInactive'])):
-            return row['Test Case Failed'] + ', 15'
-        else:
+        # If the marital status is single and the last names are different, pass the test.
+        if row['MrtlStat'] == 'Single' and row['LastName'] != row['SRLastName']:
             return row['Test Case Failed']
 
-    data['Test Case Failed'] = data.apply(check_marital_status_and_addsal, axis=1)
-    
+        # If marital status is widowed, divorced, or single and there are indications of multiple people in add/sal,
+        # fail the test unless the account is marked as inactive.
+        if ("Widow" in row['MrtlStat'] or "Divorced" in row['MrtlStat'] or "Single" in row['MrtlStat']) and \
+                ((any(substring in row['PrimAddText'] for substring in [' AND ', '&', ' and ', ' And ']) or \
+                any(substring in row['PrimSalText'] for substring in [' AND ', '&', ' and ', ' And '])) and \
+                not any(row[val] == 'Yes' for val in ['IsInactive', 'Inactive', 'SRInactive'])):
+            return row['Test Case Failed'] + ', 15'
+
+        return row['Test Case Failed']
+
                                ########vvvvvThis is Test case 16 Not in use yetvvvvv########
     # Test case 16 - Standardize Titles - Titles must be within the table and Gender and Title both cannot be blank
     # AllRETitl1s = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deacon', 'Judge', 
