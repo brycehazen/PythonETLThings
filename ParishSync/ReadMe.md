@@ -61,7 +61,7 @@ python CombineExceptions.py
 
 ## knownissues:
 ```bash
-`KeyError: "None of ['PhoneNum.1'] are in the columns"
+KeyError: "None of ['PhoneNum.1'] are in the columns"
 ```
 1. When running removePhones script, this can occcur. Open `RE_Data.csv` and make sure the phone columns are PhoneNum PhoneType and PhoneNum.1 and PhoneType.1. You xan see on line 38 and 42 what the columns need to be in `RE_Data.csv`
 
