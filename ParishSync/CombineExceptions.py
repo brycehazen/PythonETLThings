@@ -1,8 +1,8 @@
 import pandas as pd
 
 # Read both CSV files
-summary_data = pd.read_csv("New Import Control-Summary Report.csv", header=None)
-redata_exceptions = pd.read_csv("updated_RE_Data.csv")
+summary_data = pd.read_csv("New Import Control-Summary Report.csv", header=None, encoding='ISO-8859-1')
+redata_exceptions = pd.read_csv("updated_RE_Data.csv", encoding='ISO-8859-1')
 
 # Create a placeholder DataFrame with the same number of rows as redata_exceptions 
 # and the columns: 'Column', 'ColumnValue', 'Reason'
@@ -22,4 +22,4 @@ result = pd.concat([placeholders, redata_exceptions], axis=1)
 result = result.dropna(how='all', subset=['Column', 'ColumnValue', 'Reason'])
 
 # Save the result to a new CSV file
-result.to_csv("updated_RE_DataWithExceptions.csv", index=False)
+result.to_csv("updated_RE_DataWithExceptions.csv", index=False, encoding='ISO-8859-1')
