@@ -16,11 +16,18 @@ def get_root() -> Path:
 
 def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     
-    data = pd.read_csv(csv_file, encoding='latin-1')
+    try:
+        data = pd.read_csv(csv_file, encoding='ISO-8859-1')
+    except UnicodeDecodeError:
+        data = pd.read_csv(csv_file, encoding='latin-1')
+
     
     data.drop(data.columns[[38]], axis=1)
     
-    rawdata = pd.read_csv(csv_file, encoding='latin-1')
+    try:
+        rawdata = pd.read_csv(csv_file, encoding='ISO-8859-1')
+    except UnicodeDecodeError:
+        rawdata = pd.read_csv(csv_file, encoding='latin-1')
     if 'Notes' not in data.columns:
       data["Notes"] = " "
 
@@ -423,32 +430,36 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     # Testcase 14 - Marital status is blank but Addressee or salutation has "&" or "and". 
     # If there is Spouse name information they should be marked as "Partner" 
     # if they are not married but living together.
-    def check_marital_status_and_addressee(row):
-        if (not row['MrtlStat']) and (any(substring in row['PrimAddText'] for substring in ['AND', '&', 'and', 'And'])) and (any(substring in row['PrimSalText'] for substring in ['AND', '&', 'and', 'And'])):
-            return row['Test Case Failed'] + ', 14'
-        else:
-            return row['Test Case Failed']
+    # def check_marital_status_and_addressee(row):
+    #     if (not row['MrtlStat']) and (any(substring in row['PrimAddText'] for substring in ['AND', '&', 'and', 'And'])) and (any(substring in row['PrimSalText'] for substring in ['AND', '&', 'and', 'And'])):
+    #         return row['Test Case Failed'] + ', 14'
+    #     else:
+    #         return row['Test Case Failed']
 
-    data['Test Case Failed'] = data.apply(check_marital_status_and_addressee, axis=1)
+    # data['Test Case Failed'] = data.apply(check_marital_status_and_addressee, axis=1)
 
     # Test case 15 - Marital status does not reflect what is in the addressee/salutation 
     # i.e. widowed, but two people are in the add/sal, married but only one person is in add/sal
     # i.e Single will pass if LastName and SRLastNAme are not equal
-    def check_marital_status_and_addsal(row):
-        # If the marital status is single and the last names are different, pass the test.
-        if row['MrtlStat'] == 'Single' and row['LastName'] != row['SRLastName']:
-            return row['Test Case Failed']
+    # def check_marital_status_and_addsal(row):
+    #     # If the marital status is single and the last names are different, pass the test.
+    #     if row['MrtlStat'] == 'Single' and row['LastName'] != row['SRLastName']:
+    #         return row['Test Case Failed']
 
-        # If marital status is widowed, divorced, or single and there are indications of multiple people in add/sal,
-        # fail the test unless the account is marked as inactive.
-        if ("Widow" in row['MrtlStat'] or "Divorced" in row['MrtlStat'] or "Single" in row['MrtlStat']) and \
-                ((any(substring in row['PrimAddText'] for substring in [' AND ', '&', ' and ', ' And ']) or \
-                any(substring in row['PrimSalText'] for substring in [' AND ', '&', ' and ', ' And '])) and \
-                not any(row[val] == 'Yes' for val in ['IsInactive', 'Inactive', 'SRInactive'])):
-            return row['Test Case Failed'] + ', 15'
+    #     # If marital status is widowed, divorced, or single and there are indications of multiple people in add/sal,
+    #     # fail the test unless the account is marked as inactive.
+    #     if ("Widow" in row['MrtlStat'] or "Divorced" in row['MrtlStat'] or "Single" in row['MrtlStat']) and \
+    #             ((any(substring in row['PrimAddText'] for substring in [' AND ', '&', ' and ', ' And ']) or \
+    #             any(substring in row['PrimSalText'] for substring in [' AND ', '&', ' and ', ' And '])) and \
+    #             not any(row[val] == 'Yes' for val in ['IsInactive', 'Inactive', 'SRInactive'])):
+    #         return row['Test Case Failed'] + ', 15'
 
-        return row['Test Case Failed']
+    #     return row['Test Case Failed']
 
+    # # Apply the updated function to the data
+    # data['Test Case Failed'] = data.apply(check_marital_status_and_addsal, axis=1)
+
+    
                                ########vvvvvThis is Test case 16 Not in use yetvvvvv########
     # Test case 16 - Standardize Titles - Titles must be within the table and Gender and Title both cannot be blank
     # AllRETitl1s = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deacon', 'Judge', 
@@ -907,12 +918,12 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     print(re_dir  / import_csv)   # '/users/path/my_file/ImportOmatic.csv'
 
     # sorting files for output directories
-    failed.to_csv(out_dir / failed_csv, index=False)
-    duplicated.to_csv(out_dir / dup_csv, index=False)
-    renew.to_csv(re_dir  / renew_csv, index=False)
-    passed.to_csv(out_dir / passed_csv, index=False)
-    newimpomatic.to_csv(re_dir  / import_csv, index=False)
-    rawdata.to_csv(out_dir / rawdata_csv, index=False)
+    failed.to_csv(out_dir / failed_csv, index=False, encoding='ISO-8859-1')
+    duplicated.to_csv(out_dir / dup_csv, index=False, encoding='ISO-8859-1')
+    renew.to_csv(re_dir  / renew_csv, index=False, encoding='ISO-8859-1')
+    passed.to_csv(out_dir / passed_csv, index=False, encoding='ISO-8859-1')
+    newimpomatic.to_csv(re_dir  / import_csv, index=False, encoding='ISO-8859-1')
+    rawdata.to_csv(out_dir / rawdata_csv, index=False, encoding='ISO-8859-1')
     
 # This names the folder that holds all files after the parish. It will sort files that the parish uses and that Raiser's Edge uses
 def main(base_dir: Path) -> None:
