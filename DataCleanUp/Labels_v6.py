@@ -26,7 +26,7 @@ commonTitles = ['Mrs.', 'Mr.', 'Ms.', 'Miss','Sr.']
 
 # Loop through all files in directory
 for file in files:
-    df = pd.read_csv(file, encoding='latin-1', low_memory=False)
+    df = pd.read_csv(file, encoding='ISO-8859-1', low_memory=False)
     # Replaces all spaces with nan
     df = df.replace([''], np.nan)
 
@@ -320,4 +320,4 @@ for file in files:
     # Insert '_clean' before the extension
     new_file = base + '_clean' + ext
     # Save the DataFrame to the new file name in the current working directory
-    df.to_csv(f'{new_file}', index=False)
+    df.to_csv(f'{new_file}', encoding='ISO-8859-1', index=False)
