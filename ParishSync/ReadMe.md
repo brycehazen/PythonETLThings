@@ -60,7 +60,7 @@ python CombineExceptions.py
 3. This script does what the exception file created from the import process should already do. Giving you the record and the reason it was not imported in one file. Rasier's Edge is stupid in a lot of ways. 
 
 ## knownissues:
-1. KeyError: "None of ['PhoneNum.1'] are in the columns"  - When running removePhones script, this can occcur. Open `RE_Data.csv` and make sure the phone columns are PhoneNum PhoneType and PhoneNum.1 and PhoneType.1. You xan see on line 38 and 42 what the columns need to be in `RE_Data.csv`
+1. `KeyError: "None of ['PhoneNum.1'] are in the columns" ` - When running removePhones script, this can occcur. Open `RE_Data.csv` and make sure the phone columns are PhoneNum PhoneType and PhoneNum.1 and PhoneType.1. You xan see on line 38 and 42 what the columns need to be in `RE_Data.csv`
 
 **Usage**:
 ```bash
