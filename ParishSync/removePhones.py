@@ -42,4 +42,4 @@ mask_phone_1 = redata.set_index(['ConsID', 'PhoneNum.1']).index.isin(phone_cons_
 redata.loc[mask_phone_1, ['PhoneNum.1', 'PhoneType.1']] = ''
 
 # Save the updated data to a new CSV file
-redata.to_csv("updated_RE_Data.csv", index=False)
+redata.to_csv("updated_RE_Data.csv", encoding='ISO-8859-1')
