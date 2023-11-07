@@ -320,4 +320,5 @@ for file in files:
     # Insert '_clean' before the extension
     new_file = base + '_clean' + ext
     # Save the DataFrame to the new file name in the current working directory
-    df.to_csv(f'{new_file}', encoding='ISO-8859-1', index=False)
+    df.to_csv(f'{new_file}', index=False, encoding='ISO-8859-1')
+
