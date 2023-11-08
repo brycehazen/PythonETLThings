@@ -9,8 +9,7 @@ redata_exceptions = pd.read_csv("updated_RE_Data.csv", encoding='ISO-8859-1')
 placeholders = pd.DataFrame(columns=['Column', 'ColumnValue', 'Reason'], index=redata_exceptions.index)
 
 for idx, row in summary_data.iterrows():
-    #target_index = str(int(row[43]).replace(',', '')) - 1  # Remove commas and subtract 1 because index starts from 0
-    target_index = int(row[43].replace(',', '')) - 1
+    target_index = int(row[43].replace(',', '')) - 1  # Remove commas and subtract 1 because index starts from 0
     placeholders.at[target_index, 'Column'] = row[44]
     placeholders.at[target_index, 'ColumnValue'] = row[45]
     placeholders.at[target_index, 'Reason'] = row[46]
