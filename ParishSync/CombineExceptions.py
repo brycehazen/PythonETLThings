@@ -10,6 +10,7 @@ placeholders = pd.DataFrame(columns=['Column', 'ColumnValue', 'Reason'], index=r
 
 for idx, row in summary_data.iterrows():
     target_index = int(row[43].replace(',', '')) - 1  # Remove commas and subtract 1 because index starts from 0
+     #target_index = str(int(row[43]).replace(',', '')) - 1
     placeholders.at[target_index, 'Column'] = row[44]
     placeholders.at[target_index, 'ColumnValue'] = row[45]
     placeholders.at[target_index, 'Reason'] = row[46]
