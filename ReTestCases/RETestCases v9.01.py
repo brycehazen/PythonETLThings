@@ -270,7 +270,7 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
 
     # Change MrtlStat based off Gender or change to one used in RE
     data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ', na=False)) & (data['LastName'] == data['SRLastName']),'MrtlStat'] = 'Married'
-    data.loc[(data['MrtlStat'].str.contains('Religion|Civilly|Church Married|Church Marriage|Civil/Other|Marriage|Invalid Marriage|'Valid Marriage|Head', na=False)),'MrtlStat'] = 'Married'
+    data.loc[(data['MrtlStat'].str.contains('Religion|Civilly|Church Married|Church Marriage|Civil/Other|Marriage|Invalid Marriage|Valid Marriage|Head', na=False)),'MrtlStat'] = 'Married'
     data.loc[(data['MrtlStat'].str.contains('Never|Not Married|Cohabitating|Co-Habitating|Partner|Together', na=False)),'MrtlStat', ] = 'Single'
     data.loc[(data['MrtlStat'].str.contains('Deceased|Widow/Er|Widow', na=False)),'MrtlStat'] = 'Widowed'
     data.loc[(data['MrtlStat'].str.contains('Separated', na=False)),'MrtlStat'] = 'Divorced'
