@@ -1,161 +1,146 @@
-
+import os
 import pandas as pd
 
-# Load the data from the CSV file once
-data = pd.read_csv("9.7.23-BlankAddressEXPORT.csv", low_memory=False)
-
-# ----- findblank.py -----
-# Identify all columns containing the substring `_Addrline1`
-addrline1_columns = [col for col in data.columns if '_Addrline1' in col]
-
-# List to store the results of filtering for each address column
-filtered_dataframes = []
-
-for addrline1_col in addrline1_columns:
-    # Dynamically identify related columns based on the base name (e.g., CnAdrAll_1_XX_)
-    col_base = addrline1_col.rsplit('_', 1)[0] + '_'
+def process_type(data, prefix):
+    # Identify columns for the specific prefix
+    prefix_columns = [col for col in data.columns if col.startswith(prefix) or col == 'CnBio_ID']
     
-    city_col = col_base + 'City'
-    state_col = col_base + 'State'
-    zip_col = col_base + 'ZIP'
-    type_col = col_base + 'Type'
-    preferred_col = col_base + 'Preferred'
-    date_added_col = col_base + 'DateAdded'
-    date_last_changed_col = col_base + 'DateLastChanged'
-    type2_col = col_base + 'Type2'
-    indicator_col = col_base + 'Indicator'
-    import_id_col = col_base + 'Import_ID'
+    # Extract and process data for this prefix
+    type_data = data[prefix_columns].copy()
+    type_data.columns = [col.replace(prefix + '_', '') if col != 'CnBio_ID' else col for col in type_data.columns]
+    type_data['Type'] = prefix
     
-    # Filter data based on criteria for the current address column
-    current_filtered_data = data[
-        (data[preferred_col] == 'Yes') & 
-        (data[addrline1_col].isnull())
-    ]
+    return type_data
+
+def process_all_types(data, prefix_base):
+    # Initialize an empty DataFrame for all 'All' types
+    all_data = pd.DataFrame()
+
+    # Identify all unique prefixes that start with 'All'
+    all_prefixes = {col.split('_')[0] + '_' + col.split('_')[1] for col in data.columns if col.startswith(prefix_base)}
+
+    # Loop through each unique prefix
+    for prefix in all_prefixes:
+        # Process and append each 'All' type
+        subset_data = process_type(data, prefix)
+        all_data = pd.concat([all_data, subset_data], ignore_index=True)
+
+    return all_data
+
+def select_best_address(group):
+    # Filter out rows where Addrline1 is blank
+    group = group[group['Addrline1'].notna()]
+
+    # Sort by DateLastChanged in descending order to get the most recent date first
+    group = group.sort_values(by='DateLastChanged', ascending=False)
+
+    # Try to select an address where Type is 'Sp', otherwise select the topmost row
+    best_address = group[group['Type'] == 'Sp'].head(1)
+    if best_address.empty:
+        best_address = group.head(1)
+
+    return best_address
+
+# Get the directory of the current script
+script_directory = os.path.dirname(os.path.realpath(__file__))
+
+# List all .csv files in the directory
+csv_files = [f for f in os.listdir(script_directory) if f.endswith('.csv')]
+
+# Process each .csv file
+for file in csv_files:
+    file_path = os.path.join(script_directory, file)
     
-    # Extract the required columns
-    current_columns_to_extract = [
-        'CnBio_ID', 
-        'CnBio_No_Valid_Addresses', 
-        addrline1_col, 
-        city_col, 
-        state_col, 
-        zip_col, 
-        type_col, 
-        preferred_col, 
-        date_added_col, 
-        date_last_changed_col, 
-        type2_col, 
-        indicator_col, 
-        import_id_col
-    ]
+    # Read the .csv file
+    data = pd.read_csv(file_path, low_memory=False, encoding='ISO-8859-1')
+
+    # Process 'All' types
+    all_types_data = process_all_types(data, 'All')
+
+    # Process 'Sp' type
+    sp_data = process_type(data, 'Sp')
+
+    # Process 'Prf' type and save to its own file
+    prf_data = process_type(data, 'Prf')
+    prf_file_path = os.path.join(script_directory, 'Prf_' + file)
+    prf_data.to_csv(prf_file_path, index=False)
+    print(f"Processed and saved Prf file: {prf_file_path}")
+
+    # Combine 'All' and 'Sp' types into one DataFrame
+    combined_data = pd.concat([all_types_data, sp_data], ignore_index=True)
+
+    # Drop rows where Import_ID is blank and then drop the entire 'Import_ID' column
+    combined_data = combined_data.dropna(subset=['Import_ID']).drop(columns=['Import_ID'])
+
+    # Save the combined data to a new file
+    combined_file_path = os.path.join(script_directory, 'Combined_' + file)
+    combined_data.to_csv(combined_file_path, index=False)
+    print(f"Processed and saved combined file: {combined_file_path}")
+
+# After processing all files, select the best address for each CnBio_ID in the combined data
+combined_csv_files = [f for f in os.listdir(script_directory) if f.startswith('Combined_') and f.endswith('.csv')]
+
+for file in combined_csv_files:
+    combined_file_path = os.path.join(script_directory, file)
     
-    current_filtered_extracted_data = current_filtered_data[current_columns_to_extract]
+    # Read the combined .csv file
+    combined_data = pd.read_csv(combined_file_path, low_memory=False, encoding='ISO-8859-1')
+    combined_data['DateLastChanged'] = pd.to_datetime(combined_data['DateLastChanged'], errors='coerce')
+
+    # Select the best address for each CnBio_ID
+    best_addresses = combined_data.groupby('CnBio_ID').apply(select_best_address).reset_index(drop=True)
+
+    # Save the best addresses to a new file
+    best_addresses_file_path = os.path.join(script_directory, 'BestAddresses_' + file)
+    best_addresses.to_csv(best_addresses_file_path, index=False)
+    print(f"Processed and saved best addresses file: {best_addresses_file_path}")
+
+# After selecting the best addresses, join them with the 'Prf' dataset
+for file in csv_files:
+    prf_file_path = os.path.join(script_directory, 'Prf_' + file)
+    best_addresses_file_path = os.path.join(script_directory, 'BestAddresses_Combined_' + file)
+
+    # Check if both files exist before proceeding
+    if os.path.exists(prf_file_path) and os.path.exists(best_addresses_file_path):
+        # Read the 'Prf' and best addresses data
+        prf_data = pd.read_csv(prf_file_path, low_memory=False, encoding='ISO-8859-1')
+        best_addresses_data = pd.read_csv(best_addresses_file_path, low_memory=False, encoding='ISO-8859-1')
+
+        # Perform a left join to fill in blanks in 'Prf' data
+        merged_data = pd.merge(prf_data, best_addresses_data, on='CnBio_ID', how='left', suffixes=('', '_best'))
+
+        # Fill in the blanks in 'Prf' data with best addresses data
+        for column in best_addresses_data.columns:
+            if column != 'CnBio_ID':
+                merged_data[column] = merged_data[column].fillna(merged_data[column + '_best'])
+
+        # Drop the additional columns from best addresses
+        merged_data.drop([col for col in merged_data if col.endswith('_best')], axis=1, inplace=True)
+
+        # Save the merged data to a new file
+        merged_file_path = os.path.join(script_directory, 'Merged_' + file)
+        merged_data.to_csv(merged_file_path, index=False)
+        print(f"Processed and saved merged file: {merged_file_path}")
+    else:
+        print(f"One or both files do not exist for: {file}")
+
+# if there are still blanks, these blanks are saved to a new csv
+for file in csv_files:
+    merged_file_path = os.path.join(script_directory, 'Merged_' + file)
     
-    # Rename columns for simplification
-    current_column_rename_map = {
-        addrline1_col: 'Addrline1',
-        city_col: 'City',
-        state_col: 'State',
-        zip_col: 'ZIP',
-        type_col: 'Type',
-        preferred_col: 'Preferred',
-        date_added_col: 'DateAdded',
-        date_last_changed_col: 'DateLastChanged',
-        type2_col: 'Type2',
-        indicator_col: 'Indicator',
-        import_id_col: 'Import_ID'
-    }
+    if os.path.exists(merged_file_path):
+        # Read the merged data
+        merged_data = pd.read_csv(merged_file_path, low_memory=False, encoding='ISO-8859-1')
 
-    current_filtered_extracted_data = current_filtered_extracted_data.rename(columns=current_column_rename_map)
-    
-    # Append the current filtered data to the list of filtered dataframes
-    filtered_dataframes.append(current_filtered_extracted_data)
+        # Filter rows where all specified headers are blank
+        blank_rows = merged_data[merged_data[['Addrline1', 'City', 'State']].isna().all(axis=1)]
 
-# Concatenate all the filtered dataframes
-final_filtered_data = pd.concat(filtered_dataframes, ignore_index=True)
-# Save the filtered data to a new CSV file
-final_filtered_data.to_csv('final_filtered_data.csv', index=False)
-
-# ----- Transpose.py -----
-# List to store transformed data for each address group
-transformed_dataframes = []
-
-for i in range(1, 21):  # 1 to 20 inclusive
-    # Define the column names for the current address group
-    addrline1_col = f'CnAdrAll_1_{i:02}_Addrline1'
-    city_col = f'CnAdrAll_1_{i:02}_City'
-    state_col = f'CnAdrAll_1_{i:02}_State'
-    zip_col = f'CnAdrAll_1_{i:02}_ZIP'
-    type_col = f'CnAdrAll_1_{i:02}_Type'
-    preferred_col = f'CnAdrAll_1_{i:02}_Preferred'
-    date_added_col = f'CnAdrAll_1_{i:02}_DateAdded'
-    date_last_changed_col = f'CnAdrAll_1_{i:02}_DateLastChanged'
-    type2_col = f'CnAdrAll_1_{i:02}_Type2'
-    indicator_col = f'CnAdrAll_1_{i:02}_Indicator'
-    import_id_col = f'CnAdrAll_1_{i:02}_Import_ID'
-    
-    # Extract the relevant columns for the current address group
-    current_extracted_data = data[['CnBio_ID', 'CnBio_No_Valid_Addresses', addrline1_col, city_col, state_col, zip_col, type_col, preferred_col, date_added_col, date_last_changed_col, type2_col, indicator_col, import_id_col]]
-    
-    # Rename the columns
-    current_column_rename_map = {
-        addrline1_col: 'Addrline1',
-        city_col: 'City',
-        state_col: 'State',
-        zip_col: 'ZIP',
-        type_col: 'Type',
-        preferred_col: 'Preferred',
-        date_added_col: 'DateAdded',
-        date_last_changed_col: 'DateLastChanged',
-        type2_col: 'Type2',
-        indicator_col: 'Indicator',
-        import_id_col: 'Import_ID'
-    }
-    
-    current_transformed_data = current_extracted_data.rename(columns=current_column_rename_map)
-    
-    # Filter out rows where 'Preferred' is 'Yes' or 'Import_ID' is blank
-    current_transformed_data = current_transformed_data[~((current_transformed_data['Preferred'] == 'Yes') | (current_transformed_data['Import_ID'].isnull()))]
-
-
-
-    # Append the transformed data to the list
-    transformed_dataframes.append(current_transformed_data)
-
-# Concatenate all the transformed dataframes vertically
-final_transformed_data = pd.concat(transformed_dataframes, ignore_index=True)
-# Drop importID column
-final_transformed_data.drop('Import_ID', axis=1, inplace=True)
-# Output
-final_transformed_data.to_csv('final_transformed_data.csv', index=False)
-
-# ----- combine.py -----
-# Using data directly without re-loading from CSVs
-# Convert 'DateLastChanged' columns to datetime format for sorting
-final_transformed_data['DateLastChanged'] = pd.to_datetime(final_transformed_data['DateLastChanged'])
-
-# Function to get the most recent address for a given CnBio_ID
-def get_most_recent_address(cnBio_id):
-    filtered_data = final_transformed_data[final_transformed_data['CnBio_ID'] == cnBio_id]
-    sorted_data = filtered_data.sort_values(by='DateLastChanged', ascending=False).iloc[0]
-    return sorted_data[['Addrline1', 'City', 'State', 'ZIP']]
-
-# Filter out rows that don't have a valid address and no matching valid address in final_transformed_data
-rows_to_keep = []
-
-for index, row in final_filtered_data.iterrows():
-    try:
-        recent_address = get_most_recent_address(row['CnBio_ID'])
-        if not pd.isna(recent_address['Addrline1']) and recent_address['Addrline1'] != 'nan':
-            row['Addrline1'] = recent_address['Addrline1']
-            row['City'] = recent_address['City']
-            row['State'] = recent_address['State']
-            row['ZIP'] = recent_address['ZIP']
-            rows_to_keep.append(row)
-    except IndexError:
-        continue
-
-final_filtered_data_cleaned = pd.DataFrame(rows_to_keep)
-
-# Save the updated dataframe
-final_filtered_data_cleaned.to_csv('filled_final_filtered_data.csv', index=False)
+        if not blank_rows.empty:
+            # Save these rows to a new file
+            blanks_file_path = os.path.join(script_directory, 'Blanks_' + file)
+            blank_rows.to_csv(blanks_file_path, index=False)
+            print(f"Processed and saved blanks file: {blanks_file_path}")
+        else:
+            print(f"No blank rows found for: {file}")
+    else:
+        print(f"Merged file does not exist for: {file}")
