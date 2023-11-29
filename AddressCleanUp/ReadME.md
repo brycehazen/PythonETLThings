@@ -1,49 +1,52 @@
-# Most Recent Address Extractor - ImportID_MostRecentAddress.py
+# Address Data Processing Script
 
-This script processes a CSV file to extract the most recent address for each individual, considering both their own and their spouse's address records. 
-The script expects a CSV file in the same directory with the same name as the script.
+This script processes CSV files containing address data. It handles various tasks such as merging data from different address types, selecting the best address for each ID based on specific criteria, and identifying rows with blank address fields.
 
 ## Features
 
-- **Handles both individual and spouse address details**: Extracts information from separate columns dedicated to individual and spouse addresses.
-- **Date-based extraction**: Extracts the most recent address based on the date of the last change.
-- **Outputs a new CSV file**: The processed data is saved with an `_output` suffix.
+- **Process Address Types**: Combines data from different address types (`All`, `Sp`, `Prf`) into a single file.
+- **Select Best Address**: For each ID, it selects the best address based on recency and type preference.
+- **Merge with 'Prf' Type**: Merges the best address data with the 'Prf' type dataset.
+- **Identify Blanks**: Outputs rows with all blank address fields to a separate file.
 
-## How to Use
+## Usage
 
-1. Place the desired CSV file in the same directory as the script.
-2. Ensure the CSV file has the same name as the `.py` script (without the `.py` extension).
-3. Run the script using Python.
-4. The processed data will be saved in the same directory with an `_output` suffix (e.g., `process_data_output.csv`).
+1. Place your CSV files in the script's directory.
+2. Run the script. It will process all `.csv` files in the directory.
+3. The script outputs several files:
+   - `Prf_[original_file_name].csv`: Contains processed 'Prf' type data.
+   - `Combined_[original_file_name].csv`: Combined data of all types.
+   - `BestAddresses_Combined_[original_file_name].csv`: Contains the best address for each ID.
+   - `Merged_[original_file_name].csv`: Merged data of 'Prf' type and best addresses.
+   - `Blanks_[original_file_name].csv`: Rows with all blank address fields.
 
-## Columns Expected in Input CSV
+## Script Overview
 
-### Individual's Address Details:
+\```python
+import os
+import pandas as pd
 
-- `CnBio_ID`
-- `CnBio_No_Valid_Addresses`
-- `CnAdrAll_1_01_Addrline1`
-- ... (and other relevant columns)
+# Function definitions: process_type, process_all_types, select_best_address...
 
-### Spouse's Address Details:
+# Process each .csv file in the directory
+for file in csv_files:
+    # Processing steps...
+    # Read and combine data, process 'Prf' data, merge with best addresses, etc.
 
-- `CnSpAdrPrf_Addrline1`
-- `CnSpAdrPrf_City`
-- ... (and other relevant columns)
+    # After processing all files, select the best address for each CnBio_ID
+    # ...
 
-## Dependencies
+    # Output rows with all blank specified headers to a new file
+    # ...
+\```
 
-- **pandas**: Used for data processing.
-- **os**: Used for file and directory operations.
+## Requirements
 
-## Known Issues
+- Python 3
+- Pandas library
 
-- Ensure that the input CSV file is encoded in 'latin-1'.
+## Notes
 
-## Steps
-- Query on blank prefered addresses
-- In Export select query
-- Use All adresses and export several addresses
-- Include spouse's perfered address.
-- Put csv from Export in directory with this .py
-- take output file from .py and reimport back in. 
+- Ensure that your CSV files are correctly formatted and placed in the same directory as the script.
+- The script assumes specific column names (`CnBio_ID`, `Addrline1`, `City`, `State`, etc.). Make sure these match your data.
+"""
