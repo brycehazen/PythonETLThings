@@ -12,7 +12,7 @@ AllREtitles = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deaco
                  'Lt. Col.', 'Col. Ret.', 'Major', 'Capt.', 'Maj. Gen.', 'Family of', 'Senator', 'Reverend', 
                  'Lt.', 'Cmdr.', 'Msgt.', 'Sister', 'Drs.', 'Master', 'Sgt. Maj.', 'SMSgt.', 'Prof.', 'Lt. Col. Ret.', 'Rev. Dr.', 
                  'Father', 'Brother', 'Bishop', 'Gen.', 'Admiral', 'Very Reverend', 'MMC', 'Monsignor', '1st Lt.', 'Reverend Monsignor', 
-                  'Maj.', 'Most Reverend', 'Bishop Emeritus','Mrs.', 'Mr.', 'Ms.', 'Miss','Sr.', 'Family of']
+                  'Maj.', 'Most Reverend', 'Bishop Emeritus','Mrs.', 'Mr.', 'Ms.', 'Sra.', 'Señor', 'Miss','Sr.', 'Family of']
 
 # List of  special  titles
 specialTitle = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deacon', 'Judge', 
@@ -22,7 +22,7 @@ specialTitle = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deac
                   'Maj.', 'Most Reverend', 'Bishop Emeritus','Family of']
 
 # List of common titles
-commonTitles = ['Mrs.', 'Mr.', 'Ms.', 'Miss','Sr.']              
+commonTitles = ['Mrs.', 'Mr.', 'Ms.', 'Miss','Sr.','Sra.', 'Señor']              
 
 # Loop through all files in directory
 for file in files:
@@ -313,6 +313,7 @@ for file in files:
     # drops columns in list
     #df = df.drop(columns=columns_to_drop)
     # Sort the DataFrame by 'CnBio_Last_Name' and 'CnBio_First_Name'
+    # df = df.sort_values(by=['CnBio_Last_Name', 'CnBio_First_Name'])
     
     # Split the file name and extension
     base, ext = os.path.splitext(file)
