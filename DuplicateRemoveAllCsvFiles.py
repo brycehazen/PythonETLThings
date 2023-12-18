@@ -12,11 +12,6 @@ for file in csv_files:
     # Read the CSV file
     df = pd.read_csv(file, encoding='ISO-8859-1', low_memory=False)
 
-    # Uncomment and use the following lines if needed for data processing
-    # df['CnAdrPrf_Addrline1_EDIT'] = df['CnAdrPrf_Addrline1'].str.strip()
-    # df['CnAdrPrf_Addrline1_EDIT'] = df['CnAdrPrf_Addrline1'].str.lower()
-    # df["CnAdrPrf_Addrline1_EDIT"] = df['CnAdrPrf_Addrline1_EDIT'].str.replace('[^\w\s]','')
-
     # Drop duplicates
     df_new = df.drop_duplicates(subset=['Constituent ID'])
 
