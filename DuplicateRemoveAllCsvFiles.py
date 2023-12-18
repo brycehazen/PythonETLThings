@@ -13,10 +13,10 @@ for file in csv_files:
     df = pd.read_csv(file, encoding='ISO-8859-1', low_memory=False)
 
     # Drop duplicates
-    df_new = df.drop_duplicates(subset=['Constituent ID'])
+    df_new = df.drop_duplicates(subset=['CnBio_ID'])
 
     # Define the output file name
-    output_file_name = os.path.splitext(os.path.basename(file))[0] + '_PROCESSED.csv'
+    output_file_name = os.path.splitext(os.path.basename(file))[0] + '_DeDupe.csv'
     output_file = os.path.join(script_dir, output_file_name)
 
     # Save to CSV
