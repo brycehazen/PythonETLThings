@@ -35,9 +35,9 @@ for file in files:
     # drop row if all name information are blank - estates and orgs
     # df = df.dropna(subset=['CnBio_First_Name', 'CnBio_Last_Name', 'CnSpSpBio_First_Name', 'CnSpSpBio_Last_Name'], how='all')
     # drops duplicate ConsID
-    df = df.drop_duplicates(subset=['CnBio_ID'])
+    # df = df.drop_duplicates(subset=['CnBio_ID'])
 
-    # Define a function to remove data based on conditions
+    # remove data  if First names are equal
     def remove_data_based_on_conditions(row):
         # Check if 'CnBio_First_Name' is equal to 'CnSpSpBio_First_Name' and remove data if True
         if row['CnBio_First_Name'] == row['CnSpSpBio_First_Name']:
@@ -79,30 +79,30 @@ for file in files:
 
     df = df.apply(swap_rows_based_on_gender, axis=1)
 
-    def filter_and_remove_solicitations(df):
-        # List of columns to check
-        columns_to_check = [f'CnSolCd_1_{i:02d}_Solicit_Code' for i in range(1, 9)]
+    # def filter_and_remove_solicitations(df):
+    #     # List of columns to check
+    #     columns_to_check = [f'CnSolCd_1_{i:02d}_Solicit_Code' for i in range(1, 9)]
 
-        # List of strings to search for 'No OCA Solicitations', 'Do not Solicit',
-        strings_to_search = [
-            'no mail', 'Requested Removal', 'Do not mail or email', 
-            'No OCA reminders', 'No campaign Reminders'
-        ]
+    #     # List of strings to search for 'No OCA Solicitations', 'Do not Solicit',
+    #     strings_to_search = [
+    #         'no mail', 'Requested Removal', 'Do not mail or email', 
+    #         'No OCA reminders', 'No campaign Reminders'
+    #     ]
 
-        # Create a boolean mask for rows to keep
-        mask = df[columns_to_check].isin(strings_to_search).any(axis=1)
+    #     # Create a boolean mask for rows to keep
+    #     mask = df[columns_to_check].isin(strings_to_search).any(axis=1)
 
-        # Save removed rows to CSV
-        removed_df = df[mask]
-        removed_df.to_csv("ConsIdRemoved_SolicitCodes.csv", index=False)
+    #     # Save removed rows to CSV
+    #     removed_df = df[mask]
+    #     removed_df.to_csv("ConsIdRemoved_SolicitCodes.csv", index=False)
 
-        # Filter the original DataFrame to keep only the desired rows
-        df = df[~mask]
+    #     # Filter the original DataFrame to keep only the desired rows
+    #     df = df[~mask]
 
-        return df
+    #     return df
 
-    # Example usage
-    df = filter_and_remove_solicitations(df)
+    # # Example usage
+    # df = filter_and_remove_solicitations(df)
 
     # This function update Ms and Miss to mrs if the last names are the same and marital status is married 2016-8067
     def update_titles_if_married(row):
@@ -141,27 +141,43 @@ for file in files:
         return row
     df = df.apply(update_sptitles_if_blank_ms, axis=1)
     
-    #If marital status is blank and Last names are  equal, fill in with married. They might be brother and sister, but Add/sal will be mostly the same. 
+    # If marital status is blank and Last names are  equal, fill in with married. They might be brother and sister, but Add/sal will be mostly the same. 
     def update_marital_status_if_blank_married(row):
         if (((pd.isnull(row['CnBio_Marital_status']) or (row['CnBio_Marital_status'] == 'Single')) and (row['CnSpSpBio_Last_Name'] == row['CnBio_Last_Name'])) or ((row['CnSpSpBio_Last_Name'] != row['CnBio_Last_Name']) and pd.notnull(row['CnSpSpBio_Last_Name']) )):
             row['CnBio_Marital_status'] = 'Married'
         return row
     df = df.apply(update_marital_status_if_blank_married, axis=1)
 
-    # updates marital status to Widowed if Deceased or Inactive = yes, but avoids changing divorced. it will also change instnaces where person is married to themselves (wrong status but avoids bad add/sal) 
+    # updates marital status to Widowed if Deceased or Inactive = yes. it will also change instnaces where person is married to themselves (wrong status but avoids bad add/sal) 
     def update_marital_status_Widowed(row):
-        if (((row['CnSpSpBio_Deceased'] == 'Yes') or (row['CnSpSpBio_Inactive'] == 'Yes')) or ((row['CnBio_Marital_status'] == 'Divorced')) or ((row['CnSpSpBio_First_Name'] == row['CnBio_First_Name'])) or (((row['CnBio_Marital_status'] == 'Single') 
-        or (pd.isnull(row['CnBio_Marital_status']))) or (pd.isnull(row['CnSpSpBio_First_Name']))) ):
+        # Check if spouse-related fields are all blank
+        spouse_info_blank = all(pd.isnull(row[field] ) or row[field].strip() == '' for field in ['CnSpSpBio_Title_1', 'CnSpSpBio_First_Name', 'CnSpSpBio_Last_Name'])
+
+        # Update marital status to 'Widowed' based on specified conditions
+        if ((row['CnSpSpBio_Deceased'] == 'Yes') or 
+            (row['CnSpSpBio_Inactive'] == 'Yes') or 
+            (row['CnBio_Marital_status'] == 'Divorced') or 
+            ((row['CnBio_Marital_status'] in ['Single', 'Married', 'Unknown', None] or pd.isnull(row['CnBio_Marital_status'])) and spouse_info_blank)):
             row['CnBio_Marital_status'] = 'Widowed'
         return row
+
+    # Apply the function to the DataFrame
     df = df.apply(update_marital_status_Widowed, axis=1)
 
-    # If last names are different
+
     def Different_Last_Name_1(row):
-         if ( (row['CnBio_Last_Name'] != row['CnSpSpBio_Last_Name']) and (row['CnBio_Marital_status'] == 'Married') and (pd.notnull(row['CnSpSpBio_First_Name']) or pd.notnull(row['CnSpSpBio_Last_Name'])) ):
-             row['CnBio_Marital_status'] = 'DifferentLastName_1'
-         return row
+        # Check if last names are different, marital status is 'Married', 
+        # and either first name or last name of the spouse is not null/blank
+        if (row['CnBio_Last_Name'] != row['CnSpSpBio_Last_Name']) and \
+        (row['CnBio_Marital_status'] == 'Married') and \
+        ((pd.notnull(row['CnSpSpBio_First_Name']) and row['CnSpSpBio_First_Name'].strip()) or \
+        (pd.notnull(row['CnSpSpBio_Last_Name']) and row['CnSpSpBio_Last_Name'].strip())):
+            row['CnBio_Marital_status'] = 'DifferentLastName_1'
+        return row
+
+    # Apply the function to the DataFrame
     df = df.apply(Different_Last_Name_1, axis=1)
+
     
     # If last names are different but titles are the same and neither are special
     def Same_Last_Name_Same_Title_NonSpecial_2(row):
@@ -322,4 +338,3 @@ for file in files:
     new_file = base + '_clean' + ext
     # Save the DataFrame to the new file name in the current working directory
     df.to_csv(f'{new_file}', index=False, encoding='ISO-8859-1')
-
