@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import os
 
-
 # Any file ending in csv
 files = glob.glob('*.CSV')
 
@@ -164,7 +163,6 @@ for file in files:
     # Apply the function to the DataFrame
     df = df.apply(update_marital_status_Widowed, axis=1)
 
-
     def Different_Last_Name_1(row):
         # Check if last names are different, marital status is 'Married', 
         # and either first name or last name of the spouse is not null/blank
@@ -177,7 +175,6 @@ for file in files:
 
     # Apply the function to the DataFrame
     df = df.apply(Different_Last_Name_1, axis=1)
-
     
     # If last names are different but titles are the same and neither are special
     def Same_Last_Name_Same_Title_NonSpecial_2(row):
@@ -240,8 +237,6 @@ for file in files:
         return row
 
     df = df.apply(Standard_Add_Sal_MaleSp_8, axis=1)
-
-    
 
     # fills First and last name with a blank space otherwise it would fill cell with 'nan'
     df['CnBio_First_Name'] = df['CnBio_First_Name'].loc[:].fillna('')
@@ -322,10 +317,10 @@ for file in files:
 
     # list of columns_to_drop I stopped droppping columns and decided to do that manually after this runs to better trouble shoot any issues.
     #columns_to_drop = ['CnAdrPrf_Type', 'CnAdrPrf_Sndmailtthisaddrss', 'CnSpSpBio_Anonymous', 'CnBio_Gender', 'CnSpSpBio_Gender', 
-                       #'CnSpSpBio_Inactive', 'CnSpSpBio_Deceased',   'CnSpSpBio_Marital_status', 'CnBio_Marital_status']
+                       #'CnSpSpBio_Inactive', 'CnSpSpBio_Deceased',   'CnSpSpBio_Marital_status', 'CnBio_Marital_status'
+    #'CnBio_Inactive','CnSpSpBio_ID', 'CnBio_Deceased', 'CnBio_Anonymous', 'CnBio_Title_1', 'CnSpSpBio_Title_1', 'CnSpSpBio_First_Name', 
+    #'CnSpSpBio_Last_Name','CnBio_Org_Name','CnBio_Org_ID', ]
     
-#'CnBio_Inactive','CnSpSpBio_ID', 'CnBio_Deceased', 'CnBio_Anonymous', 'CnBio_Title_1', 'CnSpSpBio_Title_1', 'CnSpSpBio_First_Name', 'CnSpSpBio_Last_Name','CnBio_Org_Name',,'CnBio_Org_ID', 
-
     # drops columns in list
     #df = df.drop(columns=columns_to_drop)
     # Sort the DataFrame by 'CnBio_Last_Name' and 'CnBio_First_Name'
