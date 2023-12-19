@@ -36,28 +36,36 @@ for file in files:
     # drops duplicate ConsID
     # df = df.drop_duplicates(subset=['CnBio_ID'])
 
-    # remove data  if First names are equal
-    def remove_data_based_on_conditions(row):
+    # Define a function to remove data based on conditions
+    def remove_data_based_on_condition1(row):
         # Check if 'CnBio_First_Name' is equal to 'CnSpSpBio_First_Name' and remove data if True
         if row['CnBio_First_Name'] == row['CnSpSpBio_First_Name']:
-            row['CnSpSpBio_Gender'] = ''
-            row['CnSpSpBio_Title_1'] = ''
-            row['CnSpSpBio_First_Name'] = ''
-            row['CnSpSpBio_Last_Name'] = ''
-
-        # Check if 'CnSpSpBio_Inactive' or 'CnSpSpBio_Deceased' is 'Yes' and remove data if True
-        if row['CnSpSpBio_Inactive'] == 'Yes' or row['CnSpSpBio_Deceased'] == 'Yes' or ['CnBio_Marital_status'] == 'Widowed' or ['CnBio_Marital_status'] == 'Divorced':
-            row['CnSpSpBio_Gender'] = ''
-            row['CnSpSpBio_Title_1'] = ''
-            row['CnSpSpBio_First_Name'] = ''
-            row['CnSpSpBio_Last_Name'] = ''
+            row['CnSpSpBio_Gender'] = None
+            row['CnSpSpBio_Title_1'] = None
+            row['CnSpSpBio_First_Name'] = None
+            row['CnSpSpBio_Last_Name'] = None
+            row['CnBio_Marital_status'] = 'WidSinDiv_0'
 
         return row
 
     # Apply the function to your DataFrame
-    df = df.apply(remove_data_based_on_conditions, axis=1)
+    df = df.apply(remove_data_based_on_condition1, axis=1)
 
-  
+    # Define a function to remove data based on conditions
+    def remove_data_based_on_condition2(row):
+        # Check if 'CnSpSpBio_Inactive' or 'CnSpSpBio_Deceased' is 'Yes' and remove data if True
+        if row['CnSpSpBio_Inactive'] == 'Yes' or row['CnSpSpBio_Deceased'] == 'Yes' or row['CnBio_Marital_status'] == 'Widowed' or row['CnBio_Marital_status'] == 'Divorced':
+            row['CnSpSpBio_Gender'] = None
+            row['CnSpSpBio_Title_1'] = None
+            row['CnSpSpBio_First_Name'] = None
+            row['CnSpSpBio_Last_Name'] = None
+            row['CnBio_Marital_status'] = 'WidSinDiv_0'
+
+        return row
+
+    # Apply the function to your DataFrame
+    df = df.apply(remove_data_based_on_condition2, axis=1)
+
     def swap_rows_based_on_gender(row):
         if row['CnBio_Gender'] == 'Female' and row['CnSpSpBio_Gender'] == 'Male':
             temp_gender = row['CnBio_Gender']
