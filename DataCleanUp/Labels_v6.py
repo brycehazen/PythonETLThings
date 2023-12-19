@@ -237,20 +237,38 @@ for file in files:
         return row
 
     df = df.apply(Standard_Add_Sal_MaleSp_8, axis=1)
+  
+   # Name info is blank, cannot concatenate a addsal
+    def blank_names_Unchanged_AddSal(row):
+        if (pd.isnull(row['CnBio_Last_Name']) and pd.isnull(row['CnBio_First_Name'])):
+            row['CnBio_Marital_status'] = 'Unchanged'
+        return row
+    
+    df = df.apply(blank_names_Unchanged_AddSal, axis=1)
 
     # fills First and last name with a blank space otherwise it would fill cell with 'nan'
     df['CnBio_First_Name'] = df['CnBio_First_Name'].loc[:].fillna('')
     df['CnBio_Last_Name'] = df['CnBio_Last_Name'].loc[:].fillna('')
 
-    # Add/sal  
     def concate_add_sal(row):
-
-        # Widowed
+        # Unchanged
+        # Not enough data to concatenate a add/sal
+        if (row['CnBio_Marital_status'] == 'Unchanged' ):
+            addressee = str(row['CnAdrSal_Addressee'])
+            salutation = str(row['CnAdrSal_Salutation'])
+          
+        # WidSinDiv_0
         # Mr. Bryce Howard 
         # Mr. Howard
-        if (row['CnBio_Marital_status'] == 'Widowed' ): # and pd.notnull(row['CnBio_First_Name']) 
-            addressee = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_First_Name']) + ' ' + str(row['CnBio_Last_Name'])
-            salutation = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_Last_Name'])
+        elif (row['CnBio_Marital_status'] == 'WidSinDiv_0'):
+            # Check if Last Name is not blank
+            if pd.notnull(row['CnBio_Last_Name']) and row['CnBio_Last_Name'].strip():
+                addressee = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_First_Name']) + ' ' + str(row['CnBio_Last_Name'])
+                salutation = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_Last_Name'])
+            # If Last Name is blank, use First Name
+            elif pd.notnull(row['CnBio_First_Name']) and row['CnBio_First_Name'].strip():
+                addressee = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_First_Name'])
+                salutation = str(row['CnBio_Title_1']) + ' ' + str(row['CnBio_First_Name'])
      
         # Different_Last_Name_1
         # Mr. Bryce Howard and Mrs. Jennifer Ha 
