@@ -156,7 +156,7 @@ for file in files:
     #If marital status is blank and Last names are  equal, fill in with married. They might be brother and sister, but Add/sal will be mostly the same. 
     def update_marital_status_if_blank_married(row):
         if (((pd.isnull(row['CnBio_Marital_status']) or (row['CnBio_Marital_status'] == 'Single')) and (row['CnSpSpBio_Last_Name'] == row['CnBio_Last_Name'])) or ((row['CnSpSpBio_Last_Name'] != row['CnBio_Last_Name']) and pd.notnull(row['CnSpSpBio_Last_Name']) )):
-            row['CnBio_Marital_status'] = 'Married|Partner'
+            row['CnBio_Marital_status'] = 'Married'
         return row
     df = df.apply(update_marital_status_if_blank_married, axis=1)
 
