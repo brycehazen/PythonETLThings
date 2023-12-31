@@ -257,11 +257,13 @@ for file in files:
     
     df = df.apply(blank_names_Unchanged_AddSal, axis=1)
 
-    # fills First and last name with a blank space otherwise it would fill cell with 'nan'
+    # fills back in a blank space otherwise it would fill cell with 'nan'
     df['CnBio_First_Name'] = df['CnBio_First_Name'].loc[:].fillna('')
     df['CnBio_Last_Name'] = df['CnBio_Last_Name'].loc[:].fillna('')
     df['CnSpSpBio_First_Name'] = df['CnSpSpBio_First_Name'].loc[:].fillna('')
     df['CnSpSpBio_Last_Name'] = df['CnSpSpBio_Last_Name'].loc[:].fillna('')
+    df['CnBio_Title_1'] = df['CnBio_Title_1'].loc[:].fillna('')
+    df['CnSpSpBio_Title_1'] = df['CnSpSpBio_Title_1'].loc[:].fillna('')
 
     def concate_add_sal(row):
         # Unchanged
