@@ -47,7 +47,7 @@ for file in files:
             row['CnSpSpBio_Title_1'] = None
             row['CnSpSpBio_First_Name'] = None
             row['CnSpSpBio_Last_Name'] = None
-            row['CnBio_Marital_status'] = 'WidSinDiv_0|'
+            row['CnBio_Marital_status'] = 'WidSinDiv_0'
 
         return row
 
