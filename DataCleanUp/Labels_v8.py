@@ -57,7 +57,7 @@ for file in files:
     # Define a function to remove data based on conditions
     def remove_data_based_on_condition2(row):
         # Check if 'CnSpSpBio_Inactive' or 'CnSpSpBio_Deceased' is 'Yes' and remove data if True
-        if row['CnSpSpBio_Inactive'] == 'Yes' or row['CnSpSpBio_Deceased'] == 'Yes' or row['CnBio_Marital_status'] == 'Widowed' or row['CnBio_Marital_status'] == 'Divorced':
+        if row['CnSpSpBio_Inactive'] == 'Yes' or row['CnSpSpBio_Deceased'] == 'Yes' or row['CnBio_Marital_status'] == 'Widowed' or row['CnBio_Marital_status'] == 'Divorced' or row['CnBio_Marital_status'] == 'Separated':
             row['CnSpSpBio_Gender'] = None
             row['CnSpSpBio_Title_1'] = None
             row['CnSpSpBio_First_Name'] = None
@@ -167,6 +167,7 @@ for file in files:
         if ((row['CnSpSpBio_Deceased'] == 'Yes') or 
             (row['CnSpSpBio_Inactive'] == 'Yes') or 
             (row['CnBio_Marital_status'] == 'Divorced') or 
+            (row['CnBio_Marital_status'] == 'Separated') or
             ((row['CnBio_Marital_status'] in ['Single', 'Married', 'Unknown', None] or pd.isnull(row['CnBio_Marital_status'])) and spouse_info_blank)):
             row['CnBio_Marital_status'] = 'WidSinDiv_0'
         return row
