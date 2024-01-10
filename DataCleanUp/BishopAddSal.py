@@ -1,5 +1,6 @@
-# Use this after running Labels. 
-
+#######################################################################################
+#########Use this after running Labels. File must have _clean in the file name#########
+#######################################################################################
 import os
 import pandas as pd
 
@@ -26,7 +27,7 @@ def process_file(file_path):
             df.at[index, 'CnAdrSal_Salutation'] = first_name
 
     # Saving the processed file
-    new_file_path = os.path.splitext(file_path)[0] + '_final.csv'
+    new_file_path = os.path.splitext(file_path)[0] + '_BishAddSal.csv'
     df.to_csv(new_file_path, index=False)
 
 def main():
@@ -35,7 +36,7 @@ def main():
 
     # Processing each CSV file in the directory
     for file in os.listdir(directory):
-        if file.endswith('.csv'):
+        if file.endswith('_clean.csv'):
             process_file(os.path.join(directory, file))
 
 if __name__ == "__main__":
