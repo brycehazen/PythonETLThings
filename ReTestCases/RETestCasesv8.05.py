@@ -9,8 +9,6 @@ passed_csv = 'Passed.csv'
 import_csv = 'ImportOmatic.csv'
 rawdata_csv = 'RawParishData.csv'
 
-# Hello
-
 def get_root() -> Path:
     return Path(__file__).resolve().parent
 
