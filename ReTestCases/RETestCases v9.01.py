@@ -22,194 +22,118 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     rawdata = pd.read_csv(csv_file, encoding='latin-1')
     if 'Notes' not in data.columns:
       data["Notes"] = " "
+    # Strip leading/trailing spaces from 'ConsCode'
+    data['ConsCode'] = data['ConsCode'].str.strip()
+    
+    def transform_cons_code(data):
+        # Strip leading/trailing spaces from 'ConsCode'
+        data['ConsCode'] = data['ConsCode'].str.strip()
 
-    # Change ConsCode to long format to fit Raiser's Edge Import
-    data.loc[data['ConsCode'].eq('1-10'), 'ConsCode'] = 'St. Hubert of the Forest Mission, Astor'
-    data.loc[data['ConsCode'].eq(' 1-10'), 'ConsCode'] = 'St. Hubert of the Forest Mission, Astor'
-    data.loc[data['ConsCode'].eq('1-11'), 'ConsCode'] = 'Blessed Sacrament Catholic Church, Clermont'
-    data.loc[data['ConsCode'].eq(' 1-11'), 'ConsCode'] = 'Blessed Sacrament Catholic Church, Clermont'
-    data.loc[data['ConsCode'].eq('1-22'), 'ConsCode'] = 'St. John the Baptist Catholic Church, Dunnellon'
-    data.loc[data['ConsCode'].eq(' 1-22'), 'ConsCode'] = 'St. John the Baptist Catholic Church, Dunnellon'
-    data.loc[data['ConsCode'].eq('1-27'), 'ConsCode'] = 'St. Mary of the Lakes Catholic Church, Eustis'
-    data.loc[data['ConsCode'].eq(' 1-27'), 'ConsCode'] = 'St. Mary of the Lakes Catholic Church, Eustis'
-    data.loc[data['ConsCode'].eq('1-30'), 'ConsCode'] = 'Santo Toribio Romo Mission, Mascotte'
-    data.loc[data['ConsCode'].eq(' 1-30'), 'ConsCode'] = 'Santo Toribio Romo Mission, Mascotte'
-    data.loc[data['ConsCode'].eq('1-4'), 'ConsCode'] = 'St. Theresa Catholic Church, Belleview'
-    data.loc[data['ConsCode'].eq(' 1-4'), 'ConsCode'] = 'St. Theresa Catholic Church, Belleview'
-    data.loc[data['ConsCode'].eq('1-40'), 'ConsCode'] = 'St. Timothy Catholic Church, Lady Lake'
-    data.loc[data['ConsCode'].eq(' 1-40'), 'ConsCode'] = 'St. Timothy Catholic Church, Lady Lake'
-    data.loc[data['ConsCode'].eq('1-44'), 'ConsCode'] = 'St. Paul Catholic Church, Leesburg'
-    data.loc[data['ConsCode'].eq(' 1-44'), 'ConsCode'] = 'St. Paul Catholic Church, Leesburg'
-    data.loc[data['ConsCode'].eq('1-5'), 'ConsCode'] = 'St. Lawrence Catholic Church, Bushnell'
-    data.loc[data['ConsCode'].eq(' 1-5'), 'ConsCode'] = 'St. Lawrence Catholic Church, Bushnell'
-    data.loc[data['ConsCode'].eq('1-51'), 'ConsCode'] = 'St. Patrick Catholic Church, Mount Dora'
-    data.loc[data['ConsCode'].eq(' 1-51'), 'ConsCode'] = 'St. Patrick Catholic Church, Mount Dora'
-    data.loc[data['ConsCode'].eq('1-53'), 'ConsCode'] = 'St. Joseph of the Forest Mission, Silver Springs'
-    data.loc[data['ConsCode'].eq(' 1-53'), 'ConsCode'] = 'St. Joseph of the Forest Mission, Silver Springs'
-    data.loc[data['ConsCode'].eq('1-56'), 'ConsCode'] = 'Our Lady of the Springs Catholic Church, Ocala'
-    data.loc[data['ConsCode'].eq(' 1-56'), 'ConsCode'] = 'Our Lady of the Springs Catholic Church, Ocala'
-    data.loc[data['ConsCode'].eq('1-57'), 'ConsCode'] = 'Blessed Trinity Catholic Church, Ocala'
-    data.loc[data['ConsCode'].eq(' 1-57'), 'ConsCode'] = 'Blessed Trinity Catholic Church, Ocala'
-    data.loc[data['ConsCode'].eq('1-65'), 'ConsCode'] = 'Christ the King Mission, Citra'
-    data.loc[data['ConsCode'].eq(' 1-65'), 'ConsCode'] = 'Christ the King Mission, Citra'
-    data.loc[data['ConsCode'].eq('1-67'), 'ConsCode'] = 'Queen of Peace Catholic Church, Ocala'
-    data.loc[data['ConsCode'].eq(' 1-67'), 'ConsCode'] = 'Queen of Peace Catholic Church, Ocala'
-    data.loc[data['ConsCode'].eq('1-7'), 'ConsCode'] = 'St. Jude Catholic Church, Ocala'
-    data.loc[data['ConsCode'].eq(' 1-7'), 'ConsCode'] = 'St. Jude Catholic Church, Ocala'
-    data.loc[data['ConsCode'].eq('1-8'), 'ConsCode'] = 'Immaculate Heart of Mary Catholic Church, Candler'
-    data.loc[data['ConsCode'].eq(' 1-8'), 'ConsCode'] = 'Immaculate Heart of Mary Catholic Church, Candler'
-    data.loc[data['ConsCode'].eq('1-84'), 'ConsCode'] = 'St. Mark the Evangelist Catholic Church, Summerfield'
-    data.loc[data['ConsCode'].eq(' 1-84'), 'ConsCode'] = 'St. Mark the Evangelist Catholic Church, Summerfield'
-    data.loc[data['ConsCode'].eq('1-85'), 'ConsCode'] = 'Our Lady of Guadalupe Mission, Ocala'
-    data.loc[data['ConsCode'].eq(' 1-85'), 'ConsCode'] = 'Our Lady of Guadalupe Mission, Ocala'
-    data.loc[data['ConsCode'].eq('1-89'), 'ConsCode'] = 'St. Vincent de Paul Catholic Church, Wildwood'
-    data.loc[data['ConsCode'].eq(' 1-89'), 'ConsCode'] = 'St. Vincent de Paul Catholic Church, Wildwood'
-    data.loc[data['ConsCode'].eq('1-92'), 'ConsCode'] = 'San Pedro de Jesus Maldonado Mission, Wildwood'
-    data.loc[data['ConsCode'].eq(' 1-92'), 'ConsCode'] = 'San Pedro de Jesus Maldonado Mission, Wildwood'
-    data.loc[data['ConsCode'].eq('2-1'), 'ConsCode'] = 'St. Francis of Assisi Catholic Church, Apopka'
-    data.loc[data['ConsCode'].eq(' 2-1'), 'ConsCode'] = 'St. Francis of Assisi Catholic Church, Apopka'
-    data.loc[data['ConsCode'].eq('2-14'), 'ConsCode'] = 'Corpus Christi Catholic Church, Celebration'
-    data.loc[data['ConsCode'].eq(' 2-14'), 'ConsCode'] = 'Corpus Christi Catholic Church, Celebration'
-    data.loc[data['ConsCode'].eq('2-15'), 'ConsCode'] = 'St. Maximillian Kolbe Catholic Church, Avalon Park'
-    data.loc[data['ConsCode'].eq(' 2-15'), 'ConsCode'] = 'St. Maximillian Kolbe Catholic Church, Avalon Park'
-    data.loc[data['ConsCode'].eq('2-16'), 'ConsCode'] = 'St. Frances Xavier Cabrini, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-16'), 'ConsCode'] = 'St. Frances Xavier Cabrini, Orlando'
-    data.loc[data['ConsCode'].eq('2-2'), 'ConsCode'] = 'St. Catherine of Siena Catholic Church, Kissimmee'
-    data.loc[data['ConsCode'].eq(' 2-2'), 'ConsCode'] = 'St. Catherine of Siena Catholic Church, Kissimmee'
-    data.loc[data['ConsCode'].eq('2-29'), 'ConsCode'] = 'Sts. Peter and Paul Catholic Church, Winter Park'
-    data.loc[data['ConsCode'].eq(' 2-29'), 'ConsCode'] = 'Sts. Peter and Paul Catholic Church, Winter Park'
-    data.loc[data['ConsCode'].eq('2-33'), 'ConsCode'] = 'Holy Redeemer Catholic Church, Kissimmee'
-    data.loc[data['ConsCode'].eq(' 2-33'), 'ConsCode'] = 'Holy Redeemer Catholic Church, Kissimmee'
-    data.loc[data['ConsCode'].eq('2-39'), 'ConsCode'] = 'Church of the Nativity, Longwood'
-    data.loc[data['ConsCode'].eq(' 2-39'), 'ConsCode'] = 'Church of the Nativity, Longwood'
-    data.loc[data['ConsCode'].eq('2-45'), 'ConsCode'] = 'St. Philip Phan Van Minh Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-45'), 'ConsCode'] = 'St. Philip Phan Van Minh Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-46'), 'ConsCode'] = 'Annunciation Catholic Church, Longwood'
-    data.loc[data['ConsCode'].eq(' 2-46'), 'ConsCode'] = 'Annunciation Catholic Church, Longwood'
-    data.loc[data['ConsCode'].eq('2-47'), 'ConsCode'] = 'St. Mary Magdalen Catholic Church, Altamonte Springs'
-    data.loc[data['ConsCode'].eq(' 2-47'), 'ConsCode'] = 'St. Mary Magdalen Catholic Church, Altamonte Springs'
-    data.loc[data['ConsCode'].eq('2-58'), 'ConsCode'] = 'St. Isaac Jogues Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-58'), 'ConsCode'] = 'St. Isaac Jogues Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-59'), 'ConsCode'] = 'St. Andrew Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-59'), 'ConsCode'] = 'St. Andrew Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-6'), 'ConsCode'] = 'Holy Family Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-6'), 'ConsCode'] = 'Holy Family Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-60'), 'ConsCode'] = 'Blessed Trinity Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-60'), 'ConsCode'] = 'Blessed Trinity Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-61'), 'ConsCode'] = 'St. Charles Borromeo Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-61'), 'ConsCode'] = 'St. Charles Borromeo Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-62'), 'ConsCode'] = 'Good Shepherd Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-62'), 'ConsCode'] = 'Good Shepherd Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-63'), 'ConsCode'] = 'St. James Cathedral, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-63'), 'ConsCode'] = 'St. James Cathedral, Orlando'
-    data.loc[data['ConsCode'].eq('2-64'), 'ConsCode'] = 'St. John Vianney Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-64'), 'ConsCode'] = 'St. John Vianney Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-66'), 'ConsCode'] = 'Mary Queen of the Universe Shrine, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-66'), 'ConsCode'] = 'Mary Queen of the Universe Shrine, Orlando'
-    data.loc[data['ConsCode'].eq('2-68'), 'ConsCode'] = 'Holy Cross Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-68'), 'ConsCode'] = 'Holy Cross Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-78'), 'ConsCode'] = 'St. Thomas Aquinas Catholic Church, St. Cloud'
-    data.loc[data['ConsCode'].eq(' 2-78'), 'ConsCode'] = 'St. Thomas Aquinas Catholic Church, St. Cloud'
-    data.loc[data['ConsCode'].eq('2-79'), 'ConsCode'] = 'All Souls Catholic Church, Sanford'
-    data.loc[data['ConsCode'].eq(' 2-79'), 'ConsCode'] = 'All Souls Catholic Church, Sanford'
-    data.loc[data['ConsCode'].eq('2-81'), 'ConsCode'] = 'St. Ignatius Kim Mission, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-81'), 'ConsCode'] = 'St. Ignatius Kim Mission, Orlando'
-    data.loc[data['ConsCode'].eq('2-82'), 'ConsCode'] = 'Most Precious Blood Catholic Church, Oviedo'
-    data.loc[data['ConsCode'].eq(' 2-82'), 'ConsCode'] = 'Most Precious Blood Catholic Church, Oviedo'
-    data.loc[data['ConsCode'].eq('2-9'), 'ConsCode'] = 'St. Augustine Catholic Church, Casselberry'
-    data.loc[data['ConsCode'].eq(' 2-9'), 'ConsCode'] = 'St. Augustine Catholic Church, Casselberry'
-    data.loc[data['ConsCode'].eq('2-90'), 'ConsCode'] = 'St. Stephen Catholic Church, Winter Springs'
-    data.loc[data['ConsCode'].eq(' 2-90'), 'ConsCode'] = 'St. Stephen Catholic Church, Winter Springs'
-    data.loc[data['ConsCode'].eq('2-91'), 'ConsCode'] = 'St. Joseph Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq(' 2-91'), 'ConsCode'] = 'St. Joseph Catholic Church, Orlando'
-    data.loc[data['ConsCode'].eq('2-95'), 'ConsCode'] = 'Resurrection Catholic Church, Winter Garden'
-    data.loc[data['ConsCode'].eq(' 2-95'), 'ConsCode'] = 'Resurrection Catholic Church, Winter Garden'
-    data.loc[data['ConsCode'].eq('2-97'), 'ConsCode'] = 'St. Margaret Mary Catholic Church, Winter Park'
-    data.loc[data['ConsCode'].eq(' 2-97'), 'ConsCode'] = 'St. Margaret Mary Catholic Church, Winter Park'
-    data.loc[data['ConsCode'].eq('3-13'), 'ConsCode'] = 'St. Faustina Catholic Church, Clermont'
-    data.loc[data['ConsCode'].eq(' 3-13'), 'ConsCode'] = 'St. Faustina Catholic Church, Clermont'
-    data.loc[data['ConsCode'].eq('3-145'), 'ConsCode'] = 'Centro Guadalupano Mission, Wahneta'
-    data.loc[data['ConsCode'].eq(' 3-145'), 'ConsCode'] = 'Centro Guadalupano Mission, Wahneta'
-    data.loc[data['ConsCode'].eq('3-28'), 'ConsCode'] = 'St. John Neumann Catholic Church, Lakeland'
-    data.loc[data['ConsCode'].eq(' 3-28'), 'ConsCode'] = 'St. John Neumann Catholic Church, Lakeland'
-    data.loc[data['ConsCode'].eq('3-3'), 'ConsCode'] = 'St. Thomas Aquinas Catholic Church, Bartow'
-    data.loc[data['ConsCode'].eq(' 3-3'), 'ConsCode'] = 'St. Thomas Aquinas Catholic Church, Bartow'
-    data.loc[data['ConsCode'].eq('3-32'), 'ConsCode'] = 'St. Ann Catholic Church, Haines City'
-    data.loc[data['ConsCode'].eq(' 3-32'), 'ConsCode'] = 'St. Ann Catholic Church, Haines City'
-    data.loc[data['ConsCode'].eq('3-34'), 'ConsCode'] = 'St. Joseph Catholic Church, Lakeland'
-    data.loc[data['ConsCode'].eq(' 3-34'), 'ConsCode'] = 'St. Joseph Catholic Church, Lakeland'
-    data.loc[data['ConsCode'].eq('3-35'), 'ConsCode'] = 'Church of the Resurrection, Lakeland'
-    data.loc[data['ConsCode'].eq(' 3-35'), 'ConsCode'] = 'Church of the Resurrection, Lakeland'
-    data.loc[data['ConsCode'].eq('3-36'), 'ConsCode'] = 'St. Anthony Catholic Church, Lakeland'
-    data.loc[data['ConsCode'].eq(' 3-36'), 'ConsCode'] = 'St. Anthony Catholic Church, Lakeland'
-    data.loc[data['ConsCode'].eq('3-41'), 'ConsCode'] = 'Holy Spirit Catholic Church, Lake Wales'
-    data.loc[data['ConsCode'].eq(' 3-41'), 'ConsCode'] = 'Holy Spirit Catholic Church, Lake Wales'
-    data.loc[data['ConsCode'].eq('3-42'), 'ConsCode'] = 'St. Leo the Great Mission, Lake Wales'
-    data.loc[data['ConsCode'].eq(' 3-42'), 'ConsCode'] = 'St. Leo the Great Mission, Lake Wales'
-    data.loc[data['ConsCode'].eq('3-77'), 'ConsCode'] = 'St. Rose of Lima Catholic Church, Poinciana'
-    data.loc[data['ConsCode'].eq(' 3-77'), 'ConsCode'] = 'St. Rose of Lima Catholic Church, Poinciana'
-    data.loc[data['ConsCode'].eq('3-94'), 'ConsCode'] = 'St. Matthew Catholic Church, Winter Haven'
-    data.loc[data['ConsCode'].eq(' 3-94'), 'ConsCode'] = 'St. Matthew Catholic Church, Winter Haven'
-    data.loc[data['ConsCode'].eq('3-96'), 'ConsCode'] = 'St. Joseph Catholic Church, Winter Haven'
-    data.loc[data['ConsCode'].eq(' 3-96'), 'ConsCode'] = 'St. Joseph Catholic Church, Winter Haven'
-    data.loc[data['ConsCode'].eq('3-98'), 'ConsCode'] = 'St. Elizabeth Ann Seton Mission, Bartow'
-    data.loc[data['ConsCode'].eq(' 3-98'), 'ConsCode'] = 'St. Elizabeth Ann Seton Mission, Bartow'
-    data.loc[data['ConsCode'].eq('4-12'), 'ConsCode'] = 'Church of Our Saviour, Cocoa Beach'
-    data.loc[data['ConsCode'].eq(' 4-12'), 'ConsCode'] = 'Church of Our Saviour, Cocoa Beach'
-    data.loc[data['ConsCode'].eq('4-26'), 'ConsCode'] = 'Ascension Catholic Church, Melbourne'
-    data.loc[data['ConsCode'].eq(' 4-26'), 'ConsCode'] = 'Ascension Catholic Church, Melbourne'
-    data.loc[data['ConsCode'].eq('4-48'), 'ConsCode'] = 'Our Lady of Lourdes Catholic Church, Melbourne'
-    data.loc[data['ConsCode'].eq(' 4-48'), 'ConsCode'] = 'Our Lady of Lourdes Catholic Church, Melbourne'
-    data.loc[data['ConsCode'].eq('4-49'), 'ConsCode'] = 'Divine Mercy Catholic Church, Merritt Island'
-    data.loc[data['ConsCode'].eq(' 4-49'), 'ConsCode'] = 'Divine Mercy Catholic Church, Merritt Island'
-    data.loc[data['ConsCode'].eq('4-50'), 'ConsCode'] = 'Holy Spirit Catholic Church, Mims'
-    data.loc[data['ConsCode'].eq(' 4-50'), 'ConsCode'] = 'Holy Spirit Catholic Church, Mims'
-    data.loc[data['ConsCode'].eq('4-52'), 'ConsCode'] = 'Immaculate Conception Catholic Church, Melbourne Beach'
-    data.loc[data['ConsCode'].eq(' 4-52'), 'ConsCode'] = 'Immaculate Conception Catholic Church, Melbourne Beach'
-    data.loc[data['ConsCode'].eq('4-71'), 'ConsCode'] = 'St. Joseph Catholic Church, Palm Bay'
-    data.loc[data['ConsCode'].eq(' 4-71'), 'ConsCode'] = 'St. Joseph Catholic Church, Palm Bay'
-    data.loc[data['ConsCode'].eq('4-73'), 'ConsCode'] = 'Our Lady of Grace Catholic Church, Palm Bay'
-    data.loc[data['ConsCode'].eq(' 4-73'), 'ConsCode'] = 'Our Lady of Grace Catholic Church, Palm Bay'
-    data.loc[data['ConsCode'].eq('4-75'), 'ConsCode'] = 'St. Luke Catholic Church, Barefoot Bay'
-    data.loc[data['ConsCode'].eq(' 4-75'), 'ConsCode'] = 'St. Luke Catholic Church, Barefoot Bay'
-    data.loc[data['ConsCode'].eq('4-76'), 'ConsCode'] = 'St. Mary Catholic Church, Rockledge'
-    data.loc[data['ConsCode'].eq(' 4-76'), 'ConsCode'] = 'St. Mary Catholic Church, Rockledge'
-    data.loc[data['ConsCode'].eq('4-80'), 'ConsCode'] = 'Holy Name of Jesus Catholic Church, Indialantic'
-    data.loc[data['ConsCode'].eq(' 4-80'), 'ConsCode'] = 'Holy Name of Jesus Catholic Church, Indialantic'
-    data.loc[data['ConsCode'].eq('4-83'), 'ConsCode'] = 'Blessed Sacrament Catholic Church, Cocoa'
-    data.loc[data['ConsCode'].eq(' 4-83'), 'ConsCode'] = 'Blessed Sacrament Catholic Church, Cocoa'
-    data.loc[data['ConsCode'].eq('4-87'), 'ConsCode'] = 'St. John the Evangelist Catholic Church, Viera'
-    data.loc[data['ConsCode'].eq(' 4-87'), 'ConsCode'] = 'St. John the Evangelist Catholic Church, Viera'
-    data.loc[data['ConsCode'].eq('4-88'), 'ConsCode'] = 'St. Teresa Catholic Church, Titusville'
-    data.loc[data['ConsCode'].eq(' 4-88'), 'ConsCode'] = 'St. Teresa Catholic Church, Titusville'
-    data.loc[data['ConsCode'].eq('5-17'), 'ConsCode'] = 'Our Lady of Lourdes Catholic Church, Daytona Beach'
-    data.loc[data['ConsCode'].eq(' 5-17'), 'ConsCode'] = 'Our Lady of Lourdes Catholic Church, Daytona Beach'
-    data.loc[data['ConsCode'].eq('5-18'), 'ConsCode'] = 'Basilica of St. Paul Catholic Church, Daytona Beach'
-    data.loc[data['ConsCode'].eq(' 5-18'), 'ConsCode'] = 'Basilica of St. Paul Catholic Church, Daytona Beach'
-    data.loc[data['ConsCode'].eq('5-19'), 'ConsCode'] = 'St. Ann Catholic Church, DeBary'
-    data.loc[data['ConsCode'].eq(' 5-19'), 'ConsCode'] = 'St. Ann Catholic Church, DeBary'
-    data.loc[data['ConsCode'].eq('5-20'), 'ConsCode'] = 'St. Peter Catholic Church, DeLand'
-    data.loc[data['ConsCode'].eq(' 5-20'), 'ConsCode'] = 'St. Peter Catholic Church, DeLand'
-    data.loc[data['ConsCode'].eq('5-21'), 'ConsCode'] = 'Our Lady of the Lakes Catholic Church, Deltona'
-    data.loc[data['ConsCode'].eq(' 5-21'), 'ConsCode'] = 'Our Lady of the Lakes Catholic Church, Deltona'
-    data.loc[data['ConsCode'].eq('5-23'), 'ConsCode'] = 'San Jose Mission, DeLand'
-    data.loc[data['ConsCode'].eq(' 5-23'), 'ConsCode'] = 'San Jose Mission, DeLand'
-    data.loc[data['ConsCode'].eq('5-24'), 'ConsCode'] = 'St. Clare Catholic Church, Deltona'
-    data.loc[data['ConsCode'].eq(' 5-24'), 'ConsCode'] = 'St. Clare Catholic Church, Deltona'
-    data.loc[data['ConsCode'].eq('5-25'), 'ConsCode'] = 'St. Gerard Mission, Edgewater'
-    data.loc[data['ConsCode'].eq(' 5-25'), 'ConsCode'] = 'St. Gerard Mission, Edgewater'
-    data.loc[data['ConsCode'].eq('5-54'), 'ConsCode'] = 'Our Lady Star of the Sea Catholic Church, New Smyrna Beach'
-    data.loc[data['ConsCode'].eq(' 5-54'), 'ConsCode'] = 'Our Lady Star of the Sea Catholic Church, New Smyrna Beach'
-    data.loc[data['ConsCode'].eq('5-55'), 'ConsCode'] = 'Sacred Heart Catholic Church, New Smyrna Beach'
-    data.loc[data['ConsCode'].eq(' 5-55'), 'ConsCode'] = 'Sacred Heart Catholic Church, New Smyrna Beach'
-    data.loc[data['ConsCode'].eq('5-69'), 'ConsCode'] = 'St. Brendan Catholic Church, Ormond Beach'
-    data.loc[data['ConsCode'].eq(' 5-69'), 'ConsCode'] = 'St. Brendan Catholic Church, Ormond Beach'
-    data.loc[data['ConsCode'].eq('5-70'), 'ConsCode'] = 'Prince of Peace Catholic Church, Ormond Beach'
-    data.loc[data['ConsCode'].eq(' 5-70'), 'ConsCode'] = 'Prince of Peace Catholic Church, Ormond Beach'
-    data.loc[data['ConsCode'].eq('5-72'), 'ConsCode'] = 'Church of the Epiphany, Port Orange'
-    data.loc[data['ConsCode'].eq(' 5-72'), 'ConsCode'] = 'Church of the Epiphany, Port Orange'
-    data.loc[data['ConsCode'].eq('5-74'), 'ConsCode'] = 'Our Lady of Hope Catholic Church, Port Orange'
-    data.loc[data['ConsCode'].eq(' 5-74'), 'ConsCode'] = 'Our Lady of Hope Catholic Church, Port Orange'
+        # Dictionary mapping of codes to their long format descriptions
+        # If the csv was opened, then saved in excel, the codes were changed to dates and this will not work. 
+        codes_to_descriptions = {
+            '1-10': 'St. Hubert of the Forest Mission, Astor',
+            '1-11': 'Blessed Sacrament Catholic Church, Clermont',
+            '1-22': 'St. John the Baptist Catholic Church, Dunnellon',
+            '1-27': 'St. Mary of the Lakes Catholic Church, Eustis',
+            '1-30': 'Santo Toribio Romo Mission, Mascotte',
+            '1-4': 'St. Theresa Catholic Church, Belleview',
+            '1-40': 'St. Timothy Catholic Church, Lady Lake',
+            '1-44': 'St. Paul Catholic Church, Leesburg',
+            '1-5': 'St. Lawrence Catholic Church, Bushnell',
+            '1-51': 'St. Patrick Catholic Church, Mount Dora',
+            '1-53': 'St. Joseph of the Forest Mission, Silver Springs',
+            '1-56': 'Our Lady of the Springs Catholic Church, Ocala',
+            '1-57': 'Blessed Trinity Catholic Church, Ocala',
+            '1-65': 'Christ the King Mission, Citra',
+            '1-67': 'Queen of Peace Catholic Church, Ocala',
+            '1-7': 'St. Jude Catholic Church, Ocala',
+            '1-8': 'Immaculate Heart of Mary Catholic Church, Candler',
+            '1-84': 'St. Mark the Evangelist Catholic Church, Summerfield',
+            '1-85': 'Our Lady of Guadalupe Mission, Ocala',
+            '1-89': 'St. Vincent de Paul Catholic Church, Wildwood',
+            '1-92': 'San Pedro de Jesus Maldonado Mission, Wildwood',
+            '2-1': 'St. Francis of Assisi Catholic Church, Apopka',
+            '2-14': 'Corpus Christi Catholic Church, Celebration',
+            '2-15': 'St. Maximillian Kolbe Catholic Church, Avalon Park',
+            '2-16': 'St. Frances Xavier Cabrini, Orlando',
+            '2-2': 'St. Catherine of Siena Catholic Church, Kissimmee',
+            '2-29': 'Sts. Peter and Paul Catholic Church, Winter Park',
+            '2-33': 'Holy Redeemer Catholic Church, Kissimmee',
+            '2-39': 'Church of the Nativity, Longwood',
+            '2-45': 'St. Philip Phan Van Minh Catholic Church, Orlando',
+            '2-46': 'Annunciation Catholic Church, Longwood',
+            '2-47': 'St. Mary Magdalen Catholic Church, Altamonte Springs',
+            '2-58': 'St. Isaac Jogues Catholic Church, Orlando',
+            '2-59': 'St. Andrew Catholic Church, Orlando',
+            '2-6': 'Holy Family Catholic Church, Orlando',
+            '2-60': 'Blessed Trinity Catholic Church, Orlando',
+            '2-61': 'St. Charles Borromeo Catholic Church, Orlando',
+            '2-62': 'Good Shepherd Catholic Church, Orlando',
+            '2-63': 'St. James Cathedral, Orlando',
+            '2-64': 'St. John Vianney Catholic Church, Orlando',
+            '2-66': 'Mary Queen of the Universe Shrine, Orlando',
+            '2-68': 'Holy Cross Catholic Church, Orlando',
+            '2-78': 'St. Thomas Aquinas Catholic Church, St. Cloud',
+            '2-79': 'All Souls Catholic Church, Sanford',
+            '2-81': 'St. Ignatius Kim Mission, Orlando',
+            '2-82': 'Most Precious Blood Catholic Church, Oviedo',
+            '2-9': 'St. Augustine Catholic Church, Casselberry',
+            '2-90': 'St. Stephen Catholic Church, Winter Springs',
+            '2-91': 'St. Joseph Catholic Church, Orlando',
+            '2-95': 'Resurrection Catholic Church, Winter Garden',
+            '2-97': 'St. Margaret Mary Catholic Church, Winter Park',
+            '3-13': 'St. Faustina Catholic Church, Clermont',
+            '3-145': 'Centro Guadalupano Mission, Wahneta',
+            '3-28': 'St. John Neumann Catholic Church, Lakeland',
+            '3-3': 'St. Thomas Aquinas Catholic Church, Bartow',
+            '3-32': 'St. Ann Catholic Church, Haines City',
+            '3-34': 'St. Joseph Catholic Church, Lakeland',
+            '3-35': 'Church of the Resurrection, Lakeland',
+            '3-36': 'St. Anthony Catholic Church, Lakeland',
+            '3-41': 'Holy Spirit Catholic Church, Lake Wales',
+            '3-42': 'St. Leo the Great Mission, Lake Wales',
+            '3-77': 'St. Rose of Lima Catholic Church, Poinciana',
+            '3-94': 'St. Matthew Catholic Church, Winter Haven',
+            '3-96': 'St. Joseph Catholic Church, Winter Haven',
+            '3-98': 'St. Elizabeth Ann Seton Mission, Bartow',
+            '4-12': 'Church of Our Saviour, Cocoa Beach',
+            '4-26': 'Ascension Catholic Church, Melbourne',
+            '4-48': 'Our Lady of Lourdes Catholic Church, Melbourne',
+            '4-49': 'Divine Mercy Catholic Church, Merritt Island',
+            '4-50': 'Holy Spirit Catholic Church, Mims',
+            '4-52': 'Immaculate Conception Catholic Church, Melbourne Beach',
+            '4-71': 'St. Joseph Catholic Church, Palm Bay',
+            '4-73': 'Our Lady of Grace Catholic Church, Palm Bay',
+            '4-75': 'St. Luke Catholic Church, Barefoot Bay',
+            '4-76': 'St. Mary Catholic Church, Rockledge',
+            '4-80': 'Holy Name of Jesus Catholic Church, Indialantic',
+            '4-83': 'Blessed Sacrament Catholic Church, Cocoa',
+            '4-87': 'St. John the Evangelist Catholic Church, Viera',
+            '4-88': 'St. Teresa Catholic Church, Titusville',
+            '5-17': 'Our Lady of Lourdes Catholic Church, Daytona Beach',
+            '5-18': 'Basilica of St. Paul Catholic Church, Daytona Beach',
+            '5-19': 'St. Ann Catholic Church, DeBary',
+            '5-20': 'St. Peter Catholic Church, DeLand',
+            '5-21': 'Our Lady of the Lakes Catholic Church, Deltona',
+            '5-23': 'San Jose Mission, DeLand',
+            '5-24': 'St. Clare Catholic Church, Deltona',
+            '5-25': 'St. Gerard Mission, Edgewater',
+            '5-54': 'Our Lady Star of the Sea Catholic Church, New Smyrna Beach',
+            '5-55': 'Sacred Heart Catholic Church, New Smyrna Beach',
+            '5-69': 'St. Brendan Catholic Church, Ormond Beach',
+            '5-70': 'Prince of Peace Catholic Church, Ormond Beach',
+            '5-72': 'Church of the Epiphany, Port Orange',
+            '5-74': 'Our Lady of Hope Catholic Church, Port Orange'
+        }
+
+        # Replace ConsCode values based on the mapping
+        for code, description in codes_to_descriptions.items():
+            data.loc[data['ConsCode'].eq(code), 'ConsCode'] = description
+
+        return data
+    
+    data = transform_cons_code(data)
 
     # change MrtlStat based off Gender
     # Create array to track failed cases.
@@ -437,7 +361,7 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
 
         # If marital status is widowed, divorced, or single and there are indications of multiple people in add/sal,
         # fail the test unless the account is marked as inactive.
-        if ("Widow" in row['MrtlStat'] or "Divorced" in row['MrtlStat'] or "Single" in row['MrtlStat']) and \
+        if ("Widow" in row['MrtlStat'] or "Divorced" in row['MrtlStat'] or "Unknown" in row['MrtlStat'] or "Single" in row['MrtlStat']) and \
                 ((any(substring in row['PrimAddText'] for substring in [' AND ', '&', ' and ', ' And ']) or \
                 any(substring in row['PrimSalText'] for substring in [' AND ', '&', ' and ', ' And '])) and \
                 not any(row[val] == 'Yes' for val in ['IsInactive', 'Inactive', 'SRInactive'])):
@@ -452,20 +376,20 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     #             'Father', 'Brother', 'Bishop', 'Gen.', 'Admiral', 'Very Reverend', 'MMC', 'Monsignor', '1st Lt.', 'Reverend Monsignor', 
     #             'Maj.', 'Most Reverend', 'Bishop Emeritus','Mrs.', 'Mr.', 'Ms.', 'Miss','Sr.', 'Family of']
 
-    def check_Titl1(row):
-        # Fail when Both SRGender and SRTitl1 are Blank, but if SRLastName is not blank.
-        if not row['SRGender'] and not row['SRTitl1'] and row['SRLastName']:
-            return row['Test Case Failed'] + ', 16'
-        # Fail if Both Gender and Titl1 are Blank.
-        elif not row['Gender'] and not row['Titl1']:
-            return row['Test Case Failed'] + ', 16'
-        # Fail if Titl1 or SRTitl1 are not blank and what they contain is not found in AllRETitl1s.
-        elif (row['Titl1'] and row['Titl1'] not in AllRETitl1s) or (row['SRTitl1'] and row['SRTitl1'] not in AllRETitl1s):
-            return row['Test Case Failed'] + ', 16'
-        else:
-            return row['Test Case Failed']
+    # def check_Titl1(row):
+    #     # Fail when Both SRGender and SRTitl1 are Blank, but if SRLastName is not blank.
+    #     if not row['SRGender'] and not row['SRTitl1'] and row['SRLastName']:
+    #         return row['Test Case Failed'] + ', 16'
+    #     # Fail if Both Gender and Titl1 are Blank.
+    #     elif not row['Gender'] and not row['Titl1']:
+    #         return row['Test Case Failed'] + ', 16'
+    #     # Fail if Titl1 or SRTitl1 are not blank and what they contain is not found in AllRETitl1s.
+    #     elif (row['Titl1'] and row['Titl1'] not in AllRETitl1s) or (row['SRTitl1'] and row['SRTitl1'] not in AllRETitl1s):
+    #         return row['Test Case Failed'] + ', 16'
+    #     else:
+    #         return row['Test Case Failed']
 
-    data['Test Case Failed'] = data.apply(check_Titl1, axis=1)
+    # data['Test Case Failed'] = data.apply(check_Titl1, axis=1)
 
     if 'NameIsCorrect' in data.columns:
         failed = data[(data['Test Case Failed'] != '') & (data['NameIsCorrect'] != 'Yes')].copy()
@@ -511,11 +435,19 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     impomatic.insert(loc = 17, column='Country', value = '')
     impomatic.loc[(impomatic['AddrCity'] != '') &  impomatic['AddrState'] != '', 'Country'] = 'United States'
 
-    # Drop unwanted columns from Passed file
-    redata = passed.drop(columns=['ImportID', 'ConsCodeImpID', 'Suff1', 'SRSuff2', 'SRInactive', 
-    'AddrRegion','AddrImpID', 'AddrImpID', 'PhoneAddrImpID', 'PhoneImpID', 'PhoneAddrImpID', 
-    'PhoneImpID', 'DateTo', 'SecondID', 'Test Case Failed', 'PrimAddText', 'PrimSalText',
-    'NameChanged', 'StreetChanged', 'MailingChanged', 'AltChanged', 'Notes' ])
+    columns_to_drop_redata = ['ImportID', 'ConsCodeImpID', 'Suff1', 'SRSuff2', 'SRInactive', 
+                    'AddrRegion', 'AddrImpID', 'AddrImpID', 'PhoneAddrImpID', 
+                    'PhoneImpID', 'PhoneAddrImpID', 'PhoneImpID', 'DateTo', 
+                    'SecondID', 'Test Case Failed', 'PrimAddText', 'PrimSalText',
+                    'NameChanged', 'StreetChanged', 'MailingChanged', 
+                    'AltChanged', 'Notes']
+
+    columns_exist = [col for col in columns_to_drop_redata if col in passed.columns]
+
+    if columns_exist:
+        redata = passed.drop(columns=columns_exist)
+    else:
+        redata = passed
 
     # If ConsID contains *, remove the row - These are new records that are used for importOmatic
     redata = redata[~redata['ConsID'].str.contains("*", regex = False)].reset_index(drop=True)
