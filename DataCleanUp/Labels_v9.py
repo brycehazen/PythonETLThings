@@ -5,44 +5,43 @@ import os
 
 
 # Function to allow the ablitity to use two differnet columns names - Parish files and RE exports. 
-def unify_column_names(df, column_mapping):
-    for col in df.columns:
-        # Determine if the current column is in the mapping (either as a key or value)
-        if col in column_mapping:
-            alternate_name = column_mapping[col]
-            # If the alternate name is not in the DataFrame, rename the column
-            if alternate_name not in df.columns:
-                df.rename(columns={col: alternate_name}, inplace=True)
-        elif col in column_mapping.values():
-            # Find the original key name for this value
-            original_name = [k for k, v in column_mapping.items() if v == col][0]
-            # If the original name is not in the DataFrame, rename the column
-            if original_name not in df.columns:
-                df.rename(columns={col: original_name}, inplace=True)
-    return df
+# def unify_column_names(df, column_mapping):
+#     for col in df.columns:
+#         # Determine if the current column is in the mapping (either as a key or value)
+#         if col in column_mapping:
+#             alternate_name = column_mapping[col]
+#             # If the alternate name is not in the DataFrame, rename the column
+#             if alternate_name not in df.columns:
+#                 df.rename(columns={col: alternate_name}, inplace=True)
+#         elif col in column_mapping.values():
+#             # Find the original key name for this value
+#             original_name = [k for k, v in column_mapping.items() if v == col][0]
+#             # If the original name is not in the DataFrame, rename the column
+#             if original_name not in df.columns:
+#                 df.rename(columns={col: original_name}, inplace=True)
+#     return df
 
+# column_mapping = {
+#     "FirstName": "CnBio_First_Name",
+#     "LastName": "CnBio_Last_Name",
+#     "Title": "CnBio_Title_1",
+#     "Gender": "CnBio_Gender",
+#     "Deceased": "CnSpSpBio_Deceased",
+#     "Inactive": "CnSpSpBio_Inactive",
+#     "SRFirstName": "CnSpSpBio_First_Name",
+#     "SRLastName": "CnSpSpBio_Last_Name",
+#     "SRTitle": "CnSpSpBio_Title_1",
+#     "SRGender": "CnSpSpBio_Gender",
+#     "SRDeceased": "CnSpSpBio_Deceased",
+#     "SRInactive": "CnSpSpBio_Inactive",
+#     "PrimAddText": "CnAdrSal_Addressee",
+#     "PrimSalText": "CnAdrSal_Salutation",
+#     "MrtlStat": "CnBio_Marital_status",
+#     "CnSpSpBio_Marital_status": "MrtlStat",
+#     "AddrLines": "CnAdrPrf_Addrline1",
+#     "ConsID": "CnBio_ID",
+# }
 
-# Any file ending in csv
-files = glob.glob('*.CSV') + glob.glob('*.csv')
-
-# Define the mapping dictionary
-column_mapping = {
-    "FirstName": "CnBio_First_Name",
-    "LastName": "CnBio_Last_Name",
-    "Title": "CnBio_Title_1",
-    "Gender": "CnBio_Gender",
-    "Deceased": "CnSpSpBio_Deceased",
-    "Inactive": "CnSpSpBio_Inactive",
-    "SRFirstName": "CnSpSpBio_First_Name",
-    "SRLastName": "CnSpSpBio_Last_Name",
-    "SRTitle": "CnSpSpBio_Title_1",
-    "SRGender": "CnSpSpBio_Gender",
-    "SRDeceased": "CnSpSpBio_Deceased",
-    "SRInactive": "CnSpSpBio_Inactive",
-    "PrimAddText": "CnAdrSal_Addressee",
-    "PrimSalText": "CnAdrSal_Salutation",
-    "MrtlStat": "CnBio_Marital_status",
-    "CnSpSpBio_Marital_status": "MrtlStat"  # Added mapping
 }
 
 # List of all RE titles
