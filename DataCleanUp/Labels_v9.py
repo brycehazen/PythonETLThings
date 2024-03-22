@@ -61,6 +61,9 @@ specialTitle = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deac
 # List of common titles
 commonTitles = ['Mrs.', 'Mr.', 'Ms.', 'Miss','Sr.','Sra.', 'Señor']              
 
+# Any file ending in csv
+files = glob.glob('*.CSV') + glob.glob('*.csv')
+
 # Loop through all files in directory
 for file in files:
     # Skip files with '_clean' in the name
