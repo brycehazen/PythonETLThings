@@ -398,7 +398,8 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
             return row['Test Case Failed'] + ', 15'
 
         return row['Test Case Failed']
-
+    data['Test Case Failed'] = data.apply(check_marital_status_and_addsal, axis=1)
+    
     # Test case 16 - Standardize Titles - Titles must be within the table and Gender and Title both cannot be blank
     # AllRETitl1s = ['Dr.', 'The Honorable', 'Col.', 'Cmsgt. Ret.', 'Rev. Mr.', 'Deacon', 'Judge', 
     #             'Lt. Col.', 'Col. Ret.', 'Major', 'Capt.', 'Maj. Gen.', 'Family of', 'Senator', 'Reverend', 
