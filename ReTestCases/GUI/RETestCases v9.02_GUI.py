@@ -848,12 +848,12 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     failed = failed[cols]
 
     # printing files to show output directories
-    print(out_dir  / rawdata_csv) # '/users/path/my_file/RawParishData.csv'
-    print(out_dir / failed_csv)   # '/users/path/my_file/Failed.csv'
-    print(out_dir / dup_csv)      # '/users/path/my_file/duplicated.csv'
-    print(re_dir  / renew_csv)    # '/users/path/my_file/RE_Data.csv'
-    print(out_dir / passed_csv)   # '/users/path/my_file/Passed.csv'
-    print(re_dir  / import_csv)   # '/users/path/my_file/ImportOmatic.csv'
+    # print(out_dir  / rawdata_csv) # '/users/path/my_file/RawParishData.csv'
+    # print(out_dir / failed_csv)   # '/users/path/my_file/Failed.csv'
+    # print(out_dir / dup_csv)      # '/users/path/my_file/duplicated.csv'
+    # print(re_dir  / renew_csv)    # '/users/path/my_file/RE_Data.csv'
+    # print(out_dir / passed_csv)   # '/users/path/my_file/Passed.csv'
+    # print(re_dir  / import_csv)   # '/users/path/my_file/ImportOmatic.csv'
 
     # sorting files for output directories
     failed.to_csv(out_dir / failed_csv, index=False)
