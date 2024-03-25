@@ -15,6 +15,13 @@ First, install PyInstaller using pip:
 - Changes to def main need to be done for RETestCases
 - `def main(base_dir: Path) -> None:` gets changed to `def main(input_dir: Path, output_dir: Path) -> None:`
 - Then Ctrl+H and change `base_dir` and change to `input_dir`
+- This gets commented out
+  
+```
+if __name__ == '__main__':
+root = get_root()  # root = "users/path"
+main(input_dir=root)
+```
 
 Navigate to the directory containing your script (`RETestCasesv804.py`) in your terminal or command prompt, then execute the following command to compile into an exe:
 
