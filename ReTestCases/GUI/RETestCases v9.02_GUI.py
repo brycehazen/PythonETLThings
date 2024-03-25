@@ -154,79 +154,86 @@ def process(csv_file: Path, out_dir: Path, re_dir: Path) -> None:
     # strictly_male_titles = ['Rev. Mr.', 'Deacon', 'Father', 'Brother', 'Monsignor', 'Reverend Monsignor', 'Mr.']
     # strictly_female_titles = ['Mrs.', 'Miss', 'Sister', 'Ms.']
 
-    def title_fixer(data):
-        """
-        Adjusts titles within a dataframe based on various conditions, including gender, marital status, and consistency in title presentation.
-        It standardizes titles and updates them based on gender and marital status. Additionally, corrects known title discrepancies.
+    # def title_fixer(data):
+    #     """
+    #     Adjusts titles within a dataframe based on various conditions, including gender, marital status, and consistency in title presentation.
+    #     It standardizes titles and updates them based on gender and marital status. Additionally, corrects known title discrepancies.
 
-        Parameters:
-        - data: DataFrame containing personal information, including titles, gender, and marital status.
+    #     Parameters:
+    #     - data: DataFrame containing personal information, including titles, gender, and marital status.
 
-        Returns:
-        - DataFrame with updated and standardized titles.
-        """
+    #     Returns:
+    #     - DataFrame with updated and standardized titles.
+    #     """
 
-        # Dictionary for correcting common title variations to a standardized form
-        title_corrections = {
-            'Mr': 'Mr.', 'Mrs': 'Mrs.', 'Ms': 'Ms.', 'Dr': 'Dr.',
-            'Rev.': 'Reverend', 'Very Rev.': 'Very Reverend', 'LTC': 'Lt. Col.', 'Cpt.': 'Capt.',
-            'Mgen': 'Maj. Gen.', 'Lt Gen': 'Lt. Gen.', 'Maj Gen': 'Maj. Gen.', 'COL': 'Col.'
-        }
+    #     # Dictionary for correcting common title variations to a standardized form
+    #     title_corrections = {
+    #         'Mr': 'Mr.', 'Mrs': 'Mrs.', 'Ms': 'Ms.', 'Dr': 'Dr.',
+    #         'Rev.': 'Reverend', 'Very Rev.': 'Very Reverend', 'LTC': 'Lt. Col.', 'Cpt.': 'Capt.',
+    #         'Mgen': 'Maj. Gen.', 'Lt Gen': 'Lt. Gen.', 'Maj Gen': 'Maj. Gen.', 'COL': 'Col.'
+    #     }
         
-        # Apply corrections to both primary and spouse titles
-        data.replace({'Titl1': title_corrections, 'SRTitl1': title_corrections}, inplace=True)
+    #     # Apply corrections to both primary and spouse titles
+    #     data.replace({'Titl1': title_corrections, 'SRTitl1': title_corrections}, inplace=True)
 
-        # Lists of titles strictly associated with a specific gender
-        strictly_male_titles = ['Rev. Mr.', 'Deacon', 'Father', 'Brother', 'Monsignor', 'Reverend Monsignor', 'Mr.']
-        strictly_female_titles = ['Mrs.', 'Miss', 'Sister', 'Ms.']
+    #     # Lists of titles strictly associated with a specific gender
+    #     strictly_male_titles = ['Rev. Mr.', 'Deacon', 'Father', 'Brother', 'Monsignor', 'Reverend Monsignor', 'Mr.']
+    #     strictly_female_titles = ['Mrs.', 'Miss', 'Sister', 'Ms.']
 
-        # Update Gender, based on title if Gender is unknown or blank 
-        data.loc[(data['Gender'] == '') | (data['Gender'] == 'Unknown'), 'Gender'] = data['Titl1'].map(dict.fromkeys(strictly_male_titles, 'Male')).fillna(data['Gender'])
-        data.loc[(data['Gender'] == '') | (data['Gender'] == 'Unknown'), 'Gender'] = data['Titl1'].map(dict.fromkeys(strictly_female_titles, 'Female')).fillna(data['Gender'])
+    #     # Update Gender, based on title if Gender is unknown or blank 
+    #     data.loc[(data['Gender'] == '') | (data['Gender'] == 'Unknown'), 'Gender'] = data['Titl1'].map(dict.fromkeys(strictly_male_titles, 'Male')).fillna(data['Gender'])
+    #     data.loc[(data['Gender'] == '') | (data['Gender'] == 'Unknown'), 'Gender'] = data['Titl1'].map(dict.fromkeys(strictly_female_titles, 'Female')).fillna(data['Gender'])
 
-        # Repeat for the SRGender and SRTitl1 columns if needed
-        data.loc[(data['SRGender'] == '') | (data['SRGender'] == 'Unknown'), 'SRGender'] = data['SRTitl1'].map(dict.fromkeys(strictly_male_titles, 'Male')).fillna(data['SRGender'])
-        data.loc[(data['SRGender'] == '') | (data['SRGender'] == 'Unknown'), 'SRGender'] = data['SRTitl1'].map(dict.fromkeys(strictly_female_titles, 'Female')).fillna(data['SRGender'])
+    #     # Repeat for the SRGender and SRTitl1 columns if needed
+    #     data.loc[(data['SRGender'] == '') | (data['SRGender'] == 'Unknown'), 'SRGender'] = data['SRTitl1'].map(dict.fromkeys(strictly_male_titles, 'Male')).fillna(data['SRGender'])
+    #     data.loc[(data['SRGender'] == '') | (data['SRGender'] == 'Unknown'), 'SRGender'] = data['SRTitl1'].map(dict.fromkeys(strictly_female_titles, 'Female')).fillna(data['SRGender'])
 
-        # Update Title, based on gender if Title is blank but Gender is male or female
-        data.loc[(data['Titl1'] == '') & (data['Gender'] == 'Male'), 'Titl1'] = data['Gender'].map({'Male': 'Mr.'})
-        data.loc[(data['Titl1'] == '') & (data['Gender'] == 'Female'), 'Titl1'] = data['Gender'].map({'Female': 'Ms.'})
+    #     # Update Title, based on gender if Title is blank but Gender is male or female
+    #     data.loc[(data['Titl1'] == '') & (data['Gender'] == 'Male'), 'Titl1'] = data['Gender'].map({'Male': 'Mr.'})
+    #     data.loc[(data['Titl1'] == '') & (data['Gender'] == 'Female'), 'Titl1'] = data['Gender'].map({'Female': 'Ms.'})
 
-        # Repeat for the SRGender and SRTitl1 columns if needed
-        data.loc[(data['SRTitl1'] == '') & (data['SRGender'] == 'Male'), 'SRTitl1'] = data['SRGender'].map({'Male': 'Mr.'})
-        data.loc[(data['SRTitl1'] == '') & (data['SRGender'] == 'Female'), 'SRTitl1'] = data['SRGender'].map({'Female': 'Ms.'})
+    #     # Repeat for the SRGender and SRTitl1 columns if needed
+    #     data.loc[(data['SRTitl1'] == '') & (data['SRGender'] == 'Male'), 'SRTitl1'] = data['SRGender'].map({'Male': 'Mr.'})
+    #     data.loc[(data['SRTitl1'] == '') & (data['SRGender'] == 'Female'), 'SRTitl1'] = data['SRGender'].map({'Female': 'Ms.'})
            
-        # Change MrtlStat based off Gender or change to one used in RE
-        data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ', na=False)) & (data['LastName'] == data['SRLastName']),'MrtlStat'] = 'Married'
-        data.loc[(data['MrtlStat'].str.contains('Religion|Civilly|Church Married|Church Marriage|Civil/Other|Marriage|Invalid Marriage|Valid Marriage|Head', na=False)),'MrtlStat'] = 'Married'
-        data.loc[(data['MrtlStat'].str.contains('Never|Not Married|Cohabitating|Co-Habitating|Partner|Together', na=False)),'MrtlStat', ] = 'Single'
-        data.loc[(data['MrtlStat'].str.contains('Deceased|Widow/Er|Widow', na=False)),'MrtlStat'] = 'Widowed'
-        data.loc[(data['MrtlStat'].str.contains('Separated', na=False)),'MrtlStat'] = 'Divorced'
+    #     # Change MrtlStat based off Gender or change to one used in RE
+    #     data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ', na=False)) & (data['LastName'] == data['SRLastName']),'MrtlStat'] = 'Married'
+    #     data.loc[(data['MrtlStat'].str.contains('Religion|Civilly|Church Married|Church Marriage|Civil/Other|Marriage|Invalid Marriage|Valid Marriage|Head', na=False)),'MrtlStat'] = 'Married'
+    #     data.loc[(data['MrtlStat'].str.contains('Never|Not Married|Cohabitating|Co-Habitating|Partner|Together', na=False)),'MrtlStat', ] = 'Single'
+    #     data.loc[(data['MrtlStat'].str.contains('Deceased|Widow/Er|Widow', na=False)),'MrtlStat'] = 'Widowed'
+    #     data.loc[(data['MrtlStat'].str.contains('Separated', na=False)),'MrtlStat'] = 'Divorced'
 
-        # Function to update titles based on marital status and last name comparison
-        def update_titles_if_married(row):
-            """
-            Updates the titles to 'Mrs.' for individuals and their spouses if they are married and share the last name,
-            provided their current titles are 'Miss' or 'Ms.'.
+    #     # Function to update titles based on marital status and last name comparison
+    #     def update_titles_if_married(row):
+    #         """
+    #         Updates the titles to 'Mrs.' for individuals and their spouses if they are married and share the last name,
+    #         provided their current titles are 'Miss' or 'Ms.'.
             
-            Parameters:
-            - row: A single row from the DataFrame being processed.
+    #         Parameters:
+    #         - row: A single row from the DataFrame being processed.
             
-            Returns:
-            - The row with potentially updated titles.
-            """
-           # Check if the last names match and 'Married'
-            if (row['LastName'] == row['SRLastName']) and (row['MrtlStat'] == 'Married') and row['Titl1'] == 'Mr.' and (row['SRTitl1'] == 'Miss'  
-            or row['SRTitl1'] == 'Ms.'):
-                row['SRTitl1'] = 'Mrs.'
-            return row
+    #         Returns:
+    #         - The row with potentially updated titles.
+    #         """
+    #        # Check if the last names match and 'Married'
+    #         if (row['LastName'] == row['SRLastName']) and (row['MrtlStat'] == 'Married') and row['Titl1'] == 'Mr.' and (row['SRTitl1'] == 'Miss'  
+    #         or row['SRTitl1'] == 'Ms.'):
+    #             row['SRTitl1'] = 'Mrs.'
+    #         return row
     
-        # Apply the marital status-based title update function across all rows
-        data = data.apply(update_titles_if_married, axis=1)
+    #     # Apply the marital status-based title update function across all rows
+    #     data = data.apply(update_titles_if_married, axis=1)
 
-        return data
+    #     return data
         
-    data = title_fixer(data)
+    # data = title_fixer(data)
+
+    # Change MrtlStat based off Gender or change to one used in RE
+    data.loc[(data['MrtlStat'].isnull()) & (data['PrimAddText'].str.contains('&| and ', na=False)) & (data['LastName'] == data['SRLastName']),'MrtlStat'] = 'Married'
+    data.loc[(data['MrtlStat'].str.contains('Religion|Civilly|Church Married|Church Marriage|Civil/Other|Marriage|Invalid Marriage|Valid Marriage|Head', na=False)),'MrtlStat'] = 'Married'
+    data.loc[(data['MrtlStat'].str.contains('Never|Not Married|Cohabitating|Co-Habitating|Partner|Together', na=False)),'MrtlStat', ] = 'Single'
+    data.loc[(data['MrtlStat'].str.contains('Deceased|Widow/Er|Widow', na=False)),'MrtlStat'] = 'Widowed'
+    data.loc[(data['MrtlStat'].str.contains('Separated', na=False)),'MrtlStat'] = 'Divorced'
 
 
     # Testcase 1 - Both genders are Male but addressee or salutation contains Ms. or Mrs.
