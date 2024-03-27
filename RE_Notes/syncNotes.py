@@ -1,18 +1,39 @@
 import pandas as pd
+import os
+from datetime import datetime
 
-# Define the remapping function including the full remap_dict
+# Function to remap fund IDs based on a dictionary
 def remap_fund_id(last_fund_id, last_fund_id_desc):
-    # Full mapping of current to remapped Fund ID and descriptions
+    # Dictionary mapping original fund IDs to their corresponding IDs and descriptions
+    # Original ID: (New ID, Description)
     remap_dict = {
+        1: ("2-1", "St. Francis of Assisi Catholic Church"),
+        2: ("2-2", "St. Catherine of Siena Catholic Church"),
+        3: ("3-3", "St. Thomas Aquinas Catholic Church"),
+        4: ("1-4", "St. Theresa Catholic Church"),
+        5: ("1-5", "St. Lawrence Catholic Church"),
+        6: ("2-6", "Holy Family Catholic Church"),
+        7: ("1-7", "St. Jude Catholic Church"),
+        8: ("1-8", "Immaculate Heart of Mary Catholic Church"),
+        9: ("2-9", "St. Augustine Catholic Church"),
         10: ("1-10", "St. Hubert of the Forest Mission"),
+        11: ("1-11", "Blessed Sacrament Catholic Church"),
+        12: ("4-12", "Church of Our Saviour"),
+        13: ("3-13", "St. Faustina Catholic Church"),
+        14: ("2-14", "Corpus Christi Catholic Churchh"),
         15: ("2-15", "St. Maximillian Kolbe Catholic Church"),
         16: ("2-16", "St. Frances Xavier Cabrini"),
+        17: ("5-17", "Our Lady of Lourdes Catholic Church,"),
+        18: ("5-18", "Basilica of St. Paulh"),
         19: ("5-19", "St. Ann Catholic Church"),
         20: ("5-20", "St. Peter Catholic Church"),
+        21: ("5-21", "Our Lady of the Lakes Catholic Church"),
         22: ("1-22", "St. John the Baptist Catholic Church"),
+        23: ("5-23", "San Jose Mission"),
         24: ("5-24", "St. Clare Catholic Church"),
         25: ("5-25", "St. Gerard Mission"),
         26: ("4-26", "Ascension Catholic Church"),
+        27: ("1-27", "St. Mary of the Lakes Catholic Church"),
         28: ("3-28", "St. John Neumann Catholic Church"),
         29: ("2-29", "Sts. Peter and Paul Catholic Church"),
         30: ("1-30", "Santo Toribio Romo Mission"),
@@ -80,34 +101,162 @@ def remap_fund_id(last_fund_id, last_fund_id_desc):
         98: ("3-98", "St. Elizabeth Ann Seton Mission"),
         145: ("3-145", "Centro Guadalupano Mission"),
     }
-
-
-    # Check if the ID is in the remap dictionary and remap accordingly
-    if last_fund_id in remap_dict:
-        return remap_dict[last_fund_id]
-    # If not in the remap dictionary, return the original values
-    return str(last_fund_id), last_fund_id_desc
+    # Return the new ID and description for the given fund ID, or the original ID and description if not found in the dictionary
+    return remap_dict.get(last_fund_id, (str(last_fund_id), last_fund_id_desc))
 
 # Function to apply remapping to each row of the DataFrame
 def apply_remap(row):
-    # Ensure that LastFundID is an integer before remapping
-    try:
-        last_fund_id = int(row['LastFundID'])
-    except ValueError:
-        # If LastFundID cannot be converted to integer, return the original row
-        return row
-
-    new_id, new_desc = remap_fund_id(last_fund_id, row['LastFundIDDesc'])
+    # Get the new ID and description using remap_fund_id function
+    new_id, new_desc = remap_fund_id(row['LastFundID'], row['LastFundIDDesc'])
+    # Update the row with the new ID and description
     row['LastFundID'], row['LastFundIDDesc'] = new_id, new_desc
     return row
 
-# Reading the CSV file
-filename = 'NotesAllChanges.CSV'
-df = pd.read_csv(filename, encoding='ISO-8859-1')
+# Function to concatenate columns and generate actual notes and description
+def concatenate_columns(row, columns_to_concatenate, conscode_groups):
+    # Concatenate non-null values from specified columns into actual notes
+    actual_notes = '\n'.join([f"{col}: {row[col]}" for col in columns_to_concatenate if pd.notnull(row[col])])
+    row['CnNote_1_01_Actual_Notes'] = actual_notes
 
-# Apply the remapping to each row
+    # Extract cons codes from the row based on provided groups
+    cons_codes_short = []
+    for short_col, end_date_col in conscode_groups:
+        if pd.isnull(row[end_date_col]) and pd.notnull(row[short_col]):
+            cons_codes_short.append(str(row[short_col])
+                                    )
+    # If no cons codes found and LastFundID is not null, add LastFundID to cons codes            
+    if not cons_codes_short and pd.notnull(row['LastFundID']):
+        cons_codes_short.append(str(row['LastFundID']))
+    # Join and sort the unique cons codes to generate the description
+    row['CnNote_1_01_Description'] = '; '.join(sorted(set(cons_codes_short)))
+    return row
+
+# Function to process the DataFrame applying concatenation and remapping
+def process_dataframe(df, columns_to_concatenate, conscode_groups):
+    # Apply concatenation and remapping functions to each row of the DataFrame    
+    return df.apply(concatenate_columns, args=(columns_to_concatenate, conscode_groups), axis=1)
+
+# Function to create individual files for each unique description in a directory
+def parish_files(df, dir_name):
+    # Create the directory if it doesn't exist
+    os.makedirs(dir_name, exist_ok=True)
+    # Get unique descriptions from the DataFrame
+    descriptions = df['CnNote_1_01_Description'].dropna().unique()
+    # Iterate through each description
+    for desc in descriptions:
+        # Split the description if there are multiple codes separated by ';'
+        for single_desc in desc.split('; '):
+            # Filter DataFrame rows containing the current description
+            desc_df = df[df['CnNote_1_01_Description'].str.contains(f"\\b{single_desc}\\b", na=False, regex=True)]
+            # Generate file name based on the description and save filtered DataFrame to Excel file
+            file_name = f"{single_desc.replace('/', '_').replace(' ', '_')}.xlsx"
+            desc_df.to_excel(os.path.join(dir_name, file_name), index=False)
+
+# Function to prepare DataFrame for re-importing     
+def creating_Import_files(df):
+    # Create a new dataframe for reimporting
+    reimport_df = df.copy()
+    # Fill in column 'CnNote_1_01_Title' with 'Synced'
+    reimport_df['CnNote_1_01_Title'] = 'Synced'
+    # Drop the specified columns
+    columns_to_drop = [
+        'CnAls_1_01_Alias', 'CnAls_1_01_Alias_Type',
+        'CnAls_1_02_Alias', 'CnAls_1_02_Alias_Type',
+        'CnAls_1_03_Alias', 'CnAls_1_03_Alias_Type',
+        'CnAls_1_04_Alias', 'CnAls_1_04_Alias_Type',
+        'CnAls_1_05_Alias', 'CnAls_1_05_Alias_Type',
+        'CnAls_1_06_Alias', 'CnAls_1_06_Alias_Type',
+        'LastChangedBy', 'DateLastChange', 'PrimAddText', 'PrimSalText','SRConsID', 'SRInactive', 'SRMrtlStat',
+        'CnNote_1_01_Description', 'ConsCode_Long', 'ConsCode_Short', 'ConsCode_StartDate', 'ConsCode_EndDate',
+        'ConsCode_Long_1', 'ConsCode_Short_1', 'ConsCode_StartDate_1', 'ConsCode_EndDate_1',  'ConsCode_Long_2',
+        'ConsCode_Short_2', 'ConsCode_StartDate_2', 'ConsCode_EndDate_2', 'LastFundIDDesc', 'LastFundID',
+    ]
+    # Drop specified columns from the DataFrame
+    reimport_df.drop(columns=columns_to_drop, inplace=True, errors='ignore')
+    # Output a new csv called 'NotesAllChanges_ImportReady.csv'
+    reimport_df.to_csv('NotesAllChanges_ImportReady.csv', index=False)
+
+    return reimport_df
+
+# Function to clean up files in a directory
+def file_clean_up(dir_name):
+    # List of columns to be removed from each file
+    columns_to_remove = [
+        'CnNote_1_01_Type', 'CnNote_1_01_Title', 'CnNote_1_01_Description',
+        'CnNote_1_01_Import_ID', 'ConsCode_Long', 'ConsCode_Short',
+        'ConsCode_StartDate', 'ConsCode_EndDate', 'ConsCode_Long_1',
+        'ConsCode_Short_1', 'ConsCode_StartDate_1', 'ConsCode_EndDate_1',
+        'ConsCode_Long_2', 'ConsCode_Short_2', 'ConsCode_StartDate_2',
+        'ConsCode_EndDate_2', 'LastFundIDDesc', 'LastFundID', 'CnNote_1_01_Actual_Notes', 'LastChangedBy', 'DateLastChange',
+    ]
+    total_counts = {}
+
+    # Iterate through each file in the directory
+    for file in os.listdir(dir_name):
+        # Check if the file is an Excel file and not one of the special files
+        if file.endswith('.xlsx') and file not in ['TotalCount.xlsx', 'Rows Without File.xlsx']:
+            file_path = os.path.join(dir_name, file)
+            # Read the Excel file into a DataFrame
+            df = pd.read_excel(file_path)
+            # Remove specified columns if they exist in the DataFrame
+            df.drop(columns=[col for col in columns_to_remove if col in df.columns], inplace=True, errors='ignore')
+            # Save the modified DataFrame back to the file
+            df.to_excel(file_path, index=False)
+            # Update total_counts after cleanup
+            total_counts[file] = len(df)
+
+    # Create "TotalCount.xlsx" containing the row count of each file
+    total_count_df = pd.DataFrame(list(total_counts.items()), columns=['FileName', 'RowCount'])
+    total_count_path = os.path.join(dir_name, "TotalCount.xlsx")
+    total_count_df.to_excel(total_count_path, index=False)
+
+    # Rename 'nan.xlsx' to 'Rows Without File.xlsx' if present
+    nan_path = os.path.join(dir_name, 'nan.xlsx')
+    rows_without_file_path = os.path.join(dir_name, 'Rows Without File.xlsx')
+
+    # Check if 'nan.xlsx' exists in the directory
+    if os.path.exists(nan_path):
+        # Check if 'Rows Without File.xlsx' already exists
+        if os.path.exists(rows_without_file_path):
+            # Remove 'Rows Without File.xlsx' to avoid conflict before renaming
+            os.remove(rows_without_file_path)
+        # Rename 'nan.xlsx' to 'Rows Without File.xlsx'
+        os.rename(nan_path, rows_without_file_path)
+
+
+# Get today's date
+today = datetime.today().strftime('%Y-%m-%d')
+# Create directory name with today's date
+dir_name = f"Parish Updates {today}"
+# Input filename containing the original data
+filename = 'NotesAllChanges.XLS'
+# Read data from Excel file into a DataFrame
+df = pd.read_excel(filename)
+# Apply remapping function to each row of the DataFrame
 df = df.apply(apply_remap, axis=1)
 
-# Save the updated DataFrame ensuring no NaN values for LastFundID and LastFundIDDesc
-updated_filename = 'Updated_NotesAllChanges.CSV'
-df.to_csv(updated_filename, index=False, encoding='ISO-8859-1')
+# Columns to concatenate
+columns_to_concatenate = [
+        'LastChangedBy', 'DateLastChange', 'ConsID', 'IsInactive', 'Deceased', 'DeceasedDate', 'Gender',
+        'Titl1', 'FirstName', 'LastName', 'Suffix', 'MrtlStat', 'MaidenName', 'Bday', 'PrimAddText',
+        'PrimSalText', 'SRConsID', 'SRInactive', 'SRDeceased', 'SRDeceasedDate', 'SRGender',
+        'SRTitl1', 'SRFirstName', 'SRLastName', 'SRSuffix', 'SRMrtlStat', 'SRMaidenName', 'AddrLines',
+        'AddrCity', 'AddrState', 'AddrZIP'
+    ]
+# Cons code groups with their criteria
+conscode_groups = [
+            ('ConsCode_Short', 'ConsCode_EndDate'),
+            ('ConsCode_Short_1', 'ConsCode_EndDate_1'),
+            ('ConsCode_Short_2', 'ConsCode_EndDate_2'),
+        ]
+
+# Process the DataFrame by applying concatenation and remapping
+df = process_dataframe(df, columns_to_concatenate, conscode_groups)
+# Save the processed DataFrame to an Excel file
+df.to_excel('Updated_NotesAllChanges.xlsx', index=False)
+# Prepare DataFrame for re-importing
+reimport_df = creating_Import_files(df)
+# Generate individual files for each unique description in the directory
+parish_files(df, dir_name)
+# Clean up files in the directory
+file_clean_up(dir_name)
